@@ -209,7 +209,7 @@ export default function ProfileSettingsPage() {
                     {/* Social Links */}
                     <div className="space-y-4">
                       <Label>Social Links</Label>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <Linkedin className="w-4 h-4 text-muted-foreground" />
@@ -297,11 +297,10 @@ export default function ProfileSettingsPage() {
                       return (
                         <div
                           key={badge.badgeId}
-                          className={`p-3 rounded-lg border text-center ${
-                            isUnlocked
+                          className={`p-3 rounded-lg border text-center ${isUnlocked
                               ? 'border-primary/30 bg-primary/5'
                               : 'border-border bg-muted/30 opacity-50'
-                          }`}
+                            }`}
                         >
                           <Award className={`w-8 h-8 mx-auto mb-2 ${isUnlocked ? 'text-primary' : 'text-muted-foreground'}`} />
                           <p className="text-xs font-medium">{badge.name}</p>
@@ -404,21 +403,21 @@ export default function ProfileSettingsPage() {
                   <Label>Current Password</Label>
                   <Input type="password" {...registerPassword('currentPassword')} />
                   {passwordErrors.currentPassword && (
-                    <p className="text-sm text-destructive">{passwordErrors.currentPassword.message}</p>
+                    <p className="text-sm text-destructive">{String(passwordErrors.currentPassword.message)}</p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label>New Password</Label>
                   <Input type="password" {...registerPassword('newPassword')} />
                   {passwordErrors.newPassword && (
-                    <p className="text-sm text-destructive">{passwordErrors.newPassword.message}</p>
+                    <p className="text-sm text-destructive">{String(passwordErrors.newPassword.message)}</p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label>Confirm New Password</Label>
                   <Input type="password" {...registerPassword('confirmPassword')} />
                   {passwordErrors.confirmPassword && (
-                    <p className="text-sm text-destructive">{passwordErrors.confirmPassword.message}</p>
+                    <p className="text-sm text-destructive">{String(passwordErrors.confirmPassword.message)}</p>
                   )}
                 </div>
                 <Button type="submit" disabled={isSaving}>
@@ -468,11 +467,10 @@ export default function ProfileSettingsPage() {
                   <button
                     key={theme.id}
                     onClick={() => setSelectedTheme(theme.id)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      selectedTheme === theme.id
+                    className={`p-4 rounded-lg border-2 transition-all ${selectedTheme === theme.id
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/30'
-                    }`}
+                      }`}
                   >
                     <div className={`w-full h-16 rounded ${theme.color} mb-2`} />
                     <p className="text-sm font-medium">{theme.name}</p>

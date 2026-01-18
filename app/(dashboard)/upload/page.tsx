@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { papersApi } from '@/lib/api'
 import { collegeOptions, branchOptions, semesterOptions, subjectOptions, examTypeOptions } from '@/lib/mock-data'
 import type { ExamType } from '@/types'
 import {
@@ -76,6 +77,10 @@ export default function UploadPage() {
   const [step, setStep] = useState<'upload' | 'review' | 'success'>('upload')
   const [isProcessing, setIsProcessing] = useState(false)
   const [confidence, setConfidence] = useState<OCRConfidence | null>(null)
+  const [paperId, setPaperId] = useState<string | null>(null)
+  const [formattedText, setFormattedText] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [originalImage, setOriginalImage] = useState<string | null>(null)
 
   const {
     control,
@@ -130,11 +135,13 @@ export default function UploadPage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-      'application/pdf': ['.pdf'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/webp': ['.webp'],
+      'image/gif': ['.gif'],
     },
     maxSize: 10 * 1024 * 1024, // 10MB
-    maxFiles: 10,
+    maxFiles: 1, // Only one file at a time
   })
 
   const removeFile = (id: string) => {
@@ -149,42 +156,121 @@ export default function UploadPage() {
     if (files.length === 0) return
 
     setIsProcessing(true)
+    setError(null)
 
-    // Simulate OCR processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Call the real backend API
+      const response = await papersApi.upload(files[0].file)
 
-    // Simulated OCR results with confidence scores
-    const mockConfidence: OCRConfidence = {
-      college: 0.92,
-      subject: 0.88,
-      semester: 0.95,
-      branch: 0.85,
-      examType: 0.90,
-      year: 0.98,
-      month: 0.75,
+      if (!response.success || !response.data) {
+        setError(response.error || response.message || 'Failed to process image')
+        setIsProcessing(false)
+        return
+      }
+
+      const result = response.data
+
+      // Store paperId for confirmation
+      setPaperId(result.paperId)
+      setFormattedText(result.formattedText)
+      setOriginalImage(result.originalImage)
+
+      // Set confidence scores from AI
+      const conf = result.metadata?.confidence || {}
+      setConfidence({
+        college: conf.college || 0.5,
+        subject: conf.subject || 0.5,
+        semester: conf.semester || 0.5,
+        branch: conf.branch || 0.5,
+        examType: conf.examType || 0.5,
+        year: conf.year || 0.5,
+        month: conf.month || 0.5,
+      })
+
+      // Auto-fill form with AI-detected values
+      if (result.metadata?.college) {
+        // Find matching option or use the value directly
+        const matchedCollege = collegeOptions.find(c =>
+          c.toLowerCase().includes(result.metadata.college.toLowerCase()) ||
+          result.metadata.college.toLowerCase().includes(c.toLowerCase())
+        )
+        setValue('college', matchedCollege || result.metadata.college)
+      }
+      if (result.metadata?.subject) {
+        const matchedSubject = subjectOptions.find(s =>
+          s.toLowerCase().includes(result.metadata.subject.toLowerCase()) ||
+          result.metadata.subject.toLowerCase().includes(s.toLowerCase())
+        )
+        setValue('subject', matchedSubject || result.metadata.subject)
+      }
+      if (result.metadata?.semester) {
+        const matchedSemester = semesterOptions.find(s =>
+          s.toLowerCase().includes(result.metadata.semester.toLowerCase())
+        )
+        setValue('semester', matchedSemester || result.metadata.semester)
+      }
+      if (result.metadata?.branch) {
+        const matchedBranch = branchOptions.find(b =>
+          b.toLowerCase().includes(result.metadata.branch.toLowerCase()) ||
+          result.metadata.branch.toLowerCase().includes(b.toLowerCase())
+        )
+        setValue('branch', matchedBranch || result.metadata.branch)
+      }
+      if (result.metadata?.examType) {
+        const matchedExamType = examTypeOptions.find(e =>
+          e.value.toLowerCase() === result.metadata.examType.toLowerCase()
+        )
+        setValue('examType', matchedExamType?.value || result.metadata.examType)
+      }
+      if (result.metadata?.year) {
+        setValue('year', result.metadata.year.toString())
+      }
+      if (result.metadata?.month) {
+        setValue('month', result.metadata.month)
+      }
+
+      setIsProcessing(false)
+      setStep('review')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to process image')
+      setIsProcessing(false)
     }
-
-    setConfidence(mockConfidence)
-
-    // Auto-fill form with detected values
-    setValue('college', collegeOptions[0])
-    setValue('subject', subjectOptions[0])
-    setValue('semester', '3rd')
-    setValue('branch', branchOptions[0])
-    setValue('examType', 'semester')
-    setValue('year', '2024')
-    setValue('month', 'December')
-
-    setIsProcessing(false)
-    setStep('review')
   }
 
   const onSubmit = async (data: UploadFormData) => {
+    if (!paperId) {
+      setError('No paper to confirm. Please upload an image first.')
+      return
+    }
+
     setIsProcessing(true)
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsProcessing(false)
-    setStep('success')
+    setError(null)
+
+    try {
+      // Call the confirm API with user-reviewed metadata
+      const response = await papersApi.confirm(paperId, {
+        college: data.college,
+        subject: data.subject,
+        semester: data.semester,
+        branch: data.branch,
+        examType: data.examType as ExamType,
+        year: parseInt(data.year),
+        month: data.month,
+        formattedText: formattedText,
+      })
+
+      if (!response.success) {
+        setError(response.error || response.message || 'Failed to save paper')
+        setIsProcessing(false)
+        return
+      }
+
+      setIsProcessing(false)
+      setStep('success')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save paper')
+      setIsProcessing(false)
+    }
   }
 
   const getConfidenceColor = (score: number) => {
@@ -218,11 +304,10 @@ export default function UploadPage() {
           return (
             <div key={label} className="flex items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+                  }`}
               >
                 {index < stepIndex ? <CheckCircle className="w-5 h-5" /> : index + 1}
               </div>
@@ -234,6 +319,17 @@ export default function UploadPage() {
           )
         })}
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive"
+        >
+          {error}
+        </motion.div>
+      )}
 
       <AnimatePresence mode="wait">
         {/* Upload Step */}
@@ -248,18 +344,17 @@ export default function UploadPage() {
               <CardHeader>
                 <CardTitle>Upload Files</CardTitle>
                 <CardDescription>
-                  Upload images or PDFs of exam papers (max 10 files, 10MB each)
+                  Upload an image of an exam paper (PNG, JPG, WEBP - max 10MB)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Dropzone */}
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                    isDragActive
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                  }`}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }`}
                 >
                   <input {...getInputProps()} />
                   <div className="flex flex-col items-center gap-4">
@@ -277,7 +372,7 @@ export default function UploadPage() {
                     <div className="flex gap-2">
                       <Badge variant="secondary">PNG</Badge>
                       <Badge variant="secondary">JPG</Badge>
-                      <Badge variant="secondary">PDF</Badge>
+                      <Badge variant="secondary">WEBP</Badge>
                     </div>
                   </div>
                 </div>
@@ -383,9 +478,9 @@ export default function UploadPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="aspect-[3/4] rounded-lg bg-muted overflow-hidden">
-                    {files[0] && (
+                    {(originalImage || files[0]?.preview) && (
                       <img
-                        src={files[0].preview || "/placeholder.svg"}
+                        src={originalImage || files[0]?.preview || "/placeholder.svg"}
                         alt="Uploaded exam paper"
                         className="w-full h-full object-contain"
                       />
@@ -614,6 +709,10 @@ export default function UploadPage() {
                 setStep('upload')
                 setFiles([])
                 setConfidence(null)
+                setPaperId(null)
+                setFormattedText(null)
+                setError(null)
+                setOriginalImage(null)
               }}>
                 Upload Another
               </Button>

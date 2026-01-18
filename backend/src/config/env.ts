@@ -1,0 +1,134 @@
+// src/config/env.ts
+// Environment configuration and validation
+
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+interface EnvConfig {
+    // Server
+    PORT: number;
+    NODE_ENV: 'development' | 'production' | 'test';
+
+    // Database
+    MONGODB_URI: string;
+
+    // JWT
+    JWT_SECRET: string;
+    JWT_EXPIRES_IN: string;
+
+    // Frontend
+    FRONTEND_URL: string;
+
+    // Google Cloud Vision
+    GOOGLE_VISION_API_KEY?: string;
+
+    // Grok API (legacy)
+    GROK_API_KEY?: string;
+    GROK_API_URL: string;
+
+    // Gemini API (Google AI)
+    GEMINI_API_KEY?: string;
+
+    // Cloudinary
+    CLOUDINARY_CLOUD_NAME?: string;
+    CLOUDINARY_API_KEY?: string;
+    CLOUDINARY_API_SECRET?: string;
+
+    // Email
+    SENDGRID_API_KEY?: string;
+    EMAIL_FROM: string;
+
+    // Development flags
+    USE_MOCK_OCR: boolean;
+    USE_MOCK_AI: boolean;
+}
+
+function getEnvVar(key: string, defaultValue?: string): string {
+    const value = process.env[key] || defaultValue;
+    if (value === undefined) {
+        throw new Error(`Missing required environment variable: ${key}`);
+    }
+    return value;
+}
+
+function getEnvVarOptional(key: string): string | undefined {
+    return process.env[key];
+}
+
+function getEnvVarBool(key: string, defaultValue: boolean = false): boolean {
+    const value = process.env[key];
+    if (value === undefined) return defaultValue;
+    return value.toLowerCase() === 'true';
+}
+
+function getEnvVarNumber(key: string, defaultValue: number): number {
+    const value = process.env[key];
+    if (value === undefined) return defaultValue;
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed)) return defaultValue;
+    return parsed;
+}
+
+export const env: EnvConfig = {
+    // Server
+    PORT: getEnvVarNumber('PORT', 5000),
+    NODE_ENV: (getEnvVar('NODE_ENV', 'development') as EnvConfig['NODE_ENV']),
+
+    // Database
+    MONGODB_URI: getEnvVar('MONGODB_URI', 'mongodb://localhost:27017/exam-ready'),
+
+    // JWT
+    JWT_SECRET: getEnvVar('JWT_SECRET', 'dev-secret-change-in-production'),
+    JWT_EXPIRES_IN: getEnvVar('JWT_EXPIRES_IN', '24h'),
+
+    // Frontend
+    FRONTEND_URL: getEnvVar('FRONTEND_URL', 'http://localhost:3000'),
+
+    // Google Cloud Vision
+    GOOGLE_VISION_API_KEY: getEnvVarOptional('GOOGLE_VISION_API_KEY'),
+
+    // Grok API (legacy)
+    GROK_API_KEY: getEnvVarOptional('GROK_API_KEY'),
+    GROK_API_URL: getEnvVar('GROK_API_URL', 'https://api.x.ai/v1/chat/completions'),
+
+    // Gemini API (Google AI)
+    GEMINI_API_KEY: getEnvVarOptional('GEMINI_API_KEY'),
+
+    // Cloudinary
+    CLOUDINARY_CLOUD_NAME: getEnvVarOptional('CLOUDINARY_CLOUD_NAME'),
+    CLOUDINARY_API_KEY: getEnvVarOptional('CLOUDINARY_API_KEY'),
+    CLOUDINARY_API_SECRET: getEnvVarOptional('CLOUDINARY_API_SECRET'),
+
+    // Email
+    SENDGRID_API_KEY: getEnvVarOptional('SENDGRID_API_KEY'),
+    EMAIL_FROM: getEnvVar('EMAIL_FROM', 'noreply@examready.com'),
+
+    // Development flags
+    USE_MOCK_OCR: getEnvVarBool('USE_MOCK_OCR', false),
+    USE_MOCK_AI: getEnvVarBool('USE_MOCK_AI', false),
+};
+
+// Validate required variables in production
+if (env.NODE_ENV === 'production') {
+    const requiredInProduction = [
+        'MONGODB_URI',
+        'JWT_SECRET',
+        'GEMINI_API_KEY',
+    ];
+
+    for (const key of requiredInProduction) {
+        if (!process.env[key]) {
+            throw new Error(`Missing required environment variable for production: ${key}`);
+        }
+    }
+
+    // Warn if using dev secret in production
+    if (env.JWT_SECRET === 'dev-secret-change-in-production') {
+        throw new Error('Please set a secure JWT_SECRET for production');
+    }
+}
+
+export default env;

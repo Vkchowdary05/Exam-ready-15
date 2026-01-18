@@ -19,13 +19,13 @@ import {
 } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth-store'
 import { collegeOptions, branchOptions, semesterOptions } from '@/lib/mock-data'
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  User, 
-  Loader2, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Loader2,
   ArrowRight,
   Check,
   X
@@ -39,7 +39,8 @@ const registerSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[@$!%*?&]/, 'Password must contain at least one special character (@$!%*?&)'),
   college: z.string().min(1, 'Please select your college'),
   branch: z.string().min(1, 'Please select your branch'),
   semester: z.string().min(1, 'Please select your semester'),
@@ -53,23 +54,26 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
+    special: /[@$!%*?&]/.test(password),
   }), [password])
 
   const strength = Object.values(checks).filter(Boolean).length
-  const strengthPercent = (strength / 4) * 100
+  const strengthPercent = (strength / 5) * 100
 
   const getStrengthColor = () => {
     if (strength <= 1) return 'bg-destructive'
-    if (strength === 2) return 'bg-orange-500'
-    if (strength === 3) return 'bg-yellow-500'
+    if (strength <= 2) return 'bg-orange-500'
+    if (strength <= 3) return 'bg-yellow-500'
+    if (strength === 4) return 'bg-lime-500'
     return 'bg-green-500'
   }
 
   const getStrengthText = () => {
     if (strength <= 1) return 'Weak'
-    if (strength === 2) return 'Fair'
-    if (strength === 3) return 'Good'
-    return 'Strong'
+    if (strength <= 2) return 'Fair'
+    if (strength <= 3) return 'Good'
+    if (strength === 4) return 'Strong'
+    return 'Very Strong'
   }
 
   if (!password) return null
@@ -104,14 +108,14 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
           { key: 'uppercase', label: 'Uppercase letter' },
           { key: 'lowercase', label: 'Lowercase letter' },
           { key: 'number', label: 'Number' },
+          { key: 'special', label: 'Special (@$!%*?&)' },
         ].map((item) => (
           <div
             key={item.key}
-            className={`flex items-center gap-1.5 ${
-              checks[item.key as keyof typeof checks]
+            className={`flex items-center gap-1.5 ${checks[item.key as keyof typeof checks]
                 ? 'text-green-600'
                 : 'text-muted-foreground'
-            }`}
+              }`}
           >
             {checks[item.key as keyof typeof checks] ? (
               <Check className="w-3.5 h-3.5" />
