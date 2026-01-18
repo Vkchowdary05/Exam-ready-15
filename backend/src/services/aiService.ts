@@ -1,5 +1,5 @@
 // src/services/aiService.ts
-// AI service for metadata extraction (Gemini or mock)
+// AI service for metadata extraction (Groq or mock)
 
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
@@ -26,11 +26,20 @@ export interface AIExtractionResult {
  * Extract metadata and format questions from OCR text
  */
 export async function extractMetadataFromText(ocrText: string): Promise<AIExtractionResult> {
-    if (env.USE_MOCK_AI || !env.GEMINI_API_KEY) {
+    logger.info(`AI Service Config - USE_MOCK_AI: ${env.USE_MOCK_AI}, GROQ_API_KEY exists: ${!!env.GROQ_API_KEY}`);
+
+    if (env.USE_MOCK_AI) {
+        logger.info('Using mock AI because USE_MOCK_AI is true');
         return mockAIExtraction(ocrText);
     }
 
-    return geminiAIExtraction(ocrText);
+    if (!env.GROQ_API_KEY) {
+        logger.info('Using mock AI because GROQ_API_KEY is not set');
+        return mockAIExtraction(ocrText);
+    }
+
+    logger.info('Using real Groq API (Llama 3.3 70B) for extraction');
+    return groqAIExtraction(ocrText);
 }
 
 /**
@@ -78,9 +87,9 @@ function mockAIExtraction(ocrText: string): AIExtractionResult {
 }
 
 /**
- * Real AI extraction using Google Gemini API
+ * Real AI extraction using Groq API (Llama 3.3 70B)
  */
-async function geminiAIExtraction(ocrText: string): Promise<AIExtractionResult> {
+async function groqAIExtraction(ocrText: string): Promise<AIExtractionResult> {
     const prompt = `Extract and format the following examination paper text.
 
 Identify:
@@ -98,7 +107,7 @@ Format questions into:
 
 For each question, identify the topic it belongs to.
 
-Return ONLY a valid JSON object with this exact structure (no markdown, no code blocks):
+Return ONLY a valid JSON object with this exact structure:
 {
   "metadata": {
     "college": "string",
@@ -125,49 +134,50 @@ Here is the examination paper text:
 ${ocrText}`;
 
     try {
-        logger.info('Calling Gemini API for metadata extraction...');
+        logger.info('Calling Groq API (Llama 3.3 70B) for metadata extraction...');
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${env.GEMINI_API_KEY}`,
+            'https://api.groq.com/openai/v1/chat/completions',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${env.GROQ_API_KEY?.trim()}`,
                 },
                 body: JSON.stringify({
-                    contents: [
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
                         {
-                            parts: [
-                                {
-                                    text: prompt,
-                                },
-                            ],
+                            role: 'system',
+                            content: 'You are an AI assistant that extracts structured data from exam papers. You always return valid JSON.',
+                        },
+                        {
+                            role: 'user',
+                            content: prompt,
                         },
                     ],
-                    generationConfig: {
-                        temperature: 0.2,
-                        maxOutputTokens: 4000,
-                    },
+                    temperature: 0.1,
+                    response_format: { type: 'json_object' },
                 }),
             }
         );
 
         if (!response.ok) {
             const errorText = await response.text();
-            logger.error('Gemini API error:', errorText);
-            throw new Error(`Gemini API error: ${response.status}`);
+            logger.error('Groq API error:', errorText);
+            throw new Error(`Groq API error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json() as {
-            candidates?: Array<{
-                content?: {
-                    parts?: Array<{ text?: string }>;
+            choices?: Array<{
+                message?: {
+                    content?: string;
                 };
             }>;
         };
 
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            const content = data.candidates[0].content.parts?.[0]?.text || '';
+        if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+            const content = data.choices[0].message.content;
 
             // Try to parse JSON from the response
             // Remove markdown code blocks if present
@@ -176,16 +186,15 @@ ${ocrText}`;
             const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 const result = JSON.parse(jsonMatch[0]);
-                logger.info('Gemini AI extraction successful');
+                logger.info('Groq AI extraction successful');
                 return result as AIExtractionResult;
             }
         }
 
-        throw new Error('Failed to parse Gemini response');
+        throw new Error('Failed to parse Groq response - no valid JSON found');
     } catch (error) {
-        logger.error('AI extraction error:', error);
-        // Fall back to mock on error
-        return mockAIExtraction(ocrText);
+        logger.error('Groq AI extraction error:', error);
+        throw error;
     }
 }
 

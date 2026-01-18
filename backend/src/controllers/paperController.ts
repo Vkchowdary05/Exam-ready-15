@@ -116,10 +116,10 @@ export const uploadPaper = asyncHandler(
                 'Paper uploaded and processed successfully',
                 201
             );
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Paper upload error:', error);
             throw new ApiError(
-                'Failed to process paper. Please try again.',
+                `Failed to process paper: ${error.message || 'Unknown error'}`,
                 500,
                 ErrorTypes.EXTERNAL_API_ERROR
             );

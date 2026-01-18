@@ -29,7 +29,13 @@ interface EnvConfig {
     GROK_API_KEY?: string;
     GROK_API_URL: string;
 
-    // Gemini API (Google AI)
+    // OpenRouter API
+    OPENROUTER_API_KEY?: string;
+
+    // Groq API (Fast Inference)
+    GROQ_API_KEY?: string;
+
+    // Gemini API (Google AI) - Deprecated
     GEMINI_API_KEY?: string;
 
     // Cloudinary
@@ -94,6 +100,12 @@ export const env: EnvConfig = {
     GROK_API_KEY: getEnvVarOptional('GROK_API_KEY'),
     GROK_API_URL: getEnvVar('GROK_API_URL', 'https://api.x.ai/v1/chat/completions'),
 
+    // OpenRouter API
+    OPENROUTER_API_KEY: getEnvVarOptional('OPENROUTER_API_KEY'),
+
+    // Groq API
+    GROQ_API_KEY: getEnvVarOptional('GROQ_API_KEY'),
+
     // Gemini API (Google AI)
     GEMINI_API_KEY: getEnvVarOptional('GEMINI_API_KEY'),
 
@@ -116,7 +128,10 @@ if (env.NODE_ENV === 'production') {
     const requiredInProduction = [
         'MONGODB_URI',
         'JWT_SECRET',
-        'GEMINI_API_KEY',
+        'MONGODB_URI',
+        'JWT_SECRET',
+        'JWT_SECRET',
+        'GROQ_API_KEY',
     ];
 
     for (const key of requiredInProduction) {

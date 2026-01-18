@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { topicsApi, statsApi } from '@/lib/api'
-import { Search, TrendingUp, FileText, Loader2, AlertCircle } from 'lucide-react'
+import { Search, TrendingUp, FileText, Loader2, AlertCircle, Copy, Check } from 'lucide-react'
 import type { ITopicFilters, ITopicResult } from '@/types'
+import { toast } from 'sonner'
 
 const topicSearchSchema = z.object({
   college: z.string().min(1, 'Please select a college'),
@@ -31,7 +32,7 @@ const topicSearchSchema = z.object({
 
 type TopicSearchFormData = z.infer<typeof topicSearchSchema>
 
-const semesterOptions = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th']
+const semesterOptions = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8']
 const examTypeOptions = [
   { value: 'semester', label: 'Semester Exam' },
   { value: 'midterm1', label: 'Midterm 1' },
@@ -44,6 +45,7 @@ export default function SearchTopicsPage() {
   const [hasSearched, setHasSearched] = useState(false)
   const [results, setResults] = useState<ITopicResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // Dynamic filter options from API
   const [collegeOptions, setCollegeOptions] = useState<string[]>([])
@@ -142,6 +144,45 @@ export default function SearchTopicsPage() {
     })
     params.append('part', part)
     router.push(`/topics?${params.toString()}`)
+  }
+
+  const generateLLMPrompt = () => {
+    if (!results) return
+
+    const values = getValues()
+    const isSemester = values.examType === 'semester'
+    const isMidterm = values.examType === 'midterm1' || values.examType === 'midterm2'
+
+    const prompt = {
+      context: {
+        subject: values.subject,
+        semester: values.semester,
+        branch: values.branch,
+        college: values.college,
+        examType: values.examType === 'semester' ? 'Semester Exam' : values.examType === 'midterm1' ? 'Midterm 1' : 'Midterm 2'
+      },
+      instructions: `You are an expert teacher. Answer the following exam topics for ${values.subject}. Follow these STRICT rules:\n\n**PART-A (Short Answer Questions):**\n- Each answer should be exactly 20 words\n- Be concise and to the point\n\n**PART-B (Long Answer Questions):**\n${isMidterm
+        ? '- Each answer should be approximately 250 words\n- Include ONE practical example\n- Include ONE diagram (describe it in text format like [DIAGRAM: description])'
+        : '- Each answer should be approximately 400 words\n- Include ONE practical example\n- Include ONE detailed diagram (describe it in text format like [DIAGRAM: description])'}`,
+      partA: {
+        title: 'Part-A Topics (Short Answer - 20 words each)',
+        topics: results.partA.topics.map(t => t.name)
+      },
+      partB: {
+        title: `Part-B Topics (Long Answer - ${isMidterm ? '250' : '400'} words each with example and diagram)`,
+        topics: results.partB.topics.map(t => t.name)
+      }
+    }
+
+    const promptText = JSON.stringify(prompt, null, 2)
+
+    navigator.clipboard.writeText(promptText).then(() => {
+      setCopied(true)
+      toast.success('Prompt copied to clipboard! Paste it in ChatGPT, Gemini, or any LLM.')
+      setTimeout(() => setCopied(false), 3000)
+    }).catch(() => {
+      toast.error('Failed to copy to clipboard')
+    })
   }
 
   return (
@@ -452,6 +493,34 @@ export default function SearchTopicsPage() {
 
             </CardContent>
           </Card>
+        </motion.div>
+      )}
+
+      {/* Copy Prompt Button - Only shows when results have topics */}
+      {hasSearched && results && (results.partA.topics.length > 0 || results.partB.topics.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center"
+        >
+          <Button
+            onClick={generateLLMPrompt}
+            size="lg"
+            variant="outline"
+            className="gap-2 border-primary/50 hover:bg-primary/10"
+          >
+            {copied ? (
+              <>
+                <Check className="w-5 h-5 text-green-500" />
+                Copied! Paste in ChatGPT/Gemini
+              </>
+            ) : (
+              <>
+                <Copy className="w-5 h-5" />
+                Copy LLM Prompt for Answers
+              </>
+            )}
+          </Button>
         </motion.div>
       )}
 
