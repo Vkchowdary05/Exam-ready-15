@@ -47,11 +47,13 @@ const sortOptions = [
   { value: "oldest", label: "Oldest" },
 ];
 
-const Loading = () => null;
+const Loading = () => (
+  <div className="flex h-[50vh] items-center justify-center">
+    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+  </div>
+);
 
-export const dynamic = 'force-dynamic'
-
-export default function SearchPapersPage() {
+function SearchPapersPageContent() {
   const searchParams = useSearchParams();
   const [papers, setPapers] = useState<IPaper[]>([]);
   const [loading, setLoading] = useState(true);
@@ -368,7 +370,7 @@ export default function SearchPapersPage() {
   );
 
   return (
-    <Suspense fallback={<Loading />}>
+    <>
       <div className="min-h-screen bg-neutral-50/50 dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -520,6 +522,14 @@ export default function SearchPapersPage() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function SearchPapersPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <SearchPapersPageContent />
     </Suspense>
   );
 }

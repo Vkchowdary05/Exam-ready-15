@@ -6,9 +6,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
- 
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  // Force dynamic rendering for all pages
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
   },
 }
 

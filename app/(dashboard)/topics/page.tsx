@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -32,15 +32,13 @@ import Link from 'next/link'
 import { topicsApi } from '@/lib/api'
 import type { ITopic } from '@/types'
 
-export const dynamic = 'force-dynamic'
-
 // Type for the topics state
 type TopicsState = {
   partA: (ITopic & { studied?: boolean })[];
   partB: (ITopic & { studied?: boolean })[];
 }
 
-export default function TopicsViewPage() {
+function TopicsViewPageContent() {
   const searchParams = useSearchParams()
   // Initialize with empty arrays
   const [topics, setTopics] = useState<TopicsState>({ partA: [], partB: [] })
@@ -449,5 +447,13 @@ export default function TopicsViewPage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+export default function TopicsViewPage() {
+  return (
+    <Suspense fallback={<div className="flex h-[50vh] items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>}>
+      <TopicsViewPageContent />
+    </Suspense>
   )
 }
