@@ -41,7 +41,8 @@ const notificationSchema = new Schema<INotificationDocument>(
         timestamps: true,
         toJSON: {
             transform(doc, ret) {
-                delete ret.__v;
+                delete (ret as any).__v;
+                delete (ret as any).updatedAt;
                 return ret;
             },
         },

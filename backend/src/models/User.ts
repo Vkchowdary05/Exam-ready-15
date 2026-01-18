@@ -156,12 +156,12 @@ const userSchema = new Schema<IUserDocument>(
         timestamps: true,
         toJSON: {
             transform(doc, ret) {
-                delete ret.password;
-                delete ret.emailVerificationToken;
-                delete ret.emailVerificationExpires;
-                delete ret.passwordResetToken;
-                delete ret.passwordResetExpires;
-                delete ret.__v;
+                delete (ret as any).password;
+                delete (ret as any).emailVerificationToken;
+                delete (ret as any).emailVerificationExpires;
+                delete (ret as any).passwordResetToken;
+                delete (ret as any).passwordResetExpires;
+                delete (ret as any).__v;
                 return ret;
             },
         },
@@ -203,8 +203,8 @@ userSchema.methods.generateAuthToken = function (): string {
             email: this.email,
             role: this.role,
         },
-        env.JWT_SECRET,
-        { expiresIn: env.JWT_EXPIRES_IN }
+        env.JWT_SECRET as jwt.Secret,
+        { expiresIn: env.JWT_EXPIRES_IN } as jwt.SignOptions
     );
 };
 

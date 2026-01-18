@@ -78,7 +78,7 @@ const topicCountSchema = new Schema<ITopicCountDocument>(
         timestamps: true,
         toJSON: {
             transform(doc, ret) {
-                delete ret.__v;
+                delete (ret as any).__v;
                 return ret;
             },
         },

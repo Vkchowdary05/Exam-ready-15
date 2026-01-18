@@ -50,6 +50,7 @@ interface EnvConfig {
     // Development flags
     USE_MOCK_OCR: boolean;
     USE_MOCK_AI: boolean;
+    SKIP_EMAIL_VERIFICATION?: boolean;
 }
 
 function getEnvVar(key: string, defaultValue?: string): string {
@@ -121,6 +122,7 @@ export const env: EnvConfig = {
     // Development flags
     USE_MOCK_OCR: getEnvVarBool('USE_MOCK_OCR', false),
     USE_MOCK_AI: getEnvVarBool('USE_MOCK_AI', false),
+    SKIP_EMAIL_VERIFICATION: getEnvVarBool('SKIP_EMAIL_VERIFICATION', false),
 };
 
 // Validate required variables in production

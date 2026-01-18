@@ -16,9 +16,9 @@ interface TokenPayload {
  * Generate a JWT token for a user
  */
 export function generateToken(payload: TokenPayload): string {
-    return jwt.sign(payload, env.JWT_SECRET, {
-        expiresIn: env.JWT_EXPIRES_IN,
-    });
+    return jwt.sign(payload, env.JWT_SECRET as jwt.Secret,
+        { expiresIn: env.JWT_EXPIRES_IN } as jwt.SignOptions,
+    );
 }
 
 /**
