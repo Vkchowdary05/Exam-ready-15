@@ -93,7 +93,7 @@ export default function DashboardPage() {
         // Fetch data in parallel
         const [papersRes, statsRes, platformRes] = await Promise.all([
           papersApi.search({}, 1, 6),
-          isAuthenticated ? usersApi.getStats() : Promise.resolve({ success: false }),
+          isAuthenticated ? usersApi.getStats() : Promise.resolve({ success: false, data: null }),
           statsApi.getPlatformStats()
         ])
 
@@ -127,8 +127,8 @@ export default function DashboardPage() {
   }, [isAuthenticated])
 
   const displayName = user?.name?.split(' ')[0] || 'there'
-  const userCredits = user?.credits || userStats?.totalUploads ? (userStats?.totalUploads || 0) * 10 : 0
-  const userBadgeCount = user?.badges?.length || userStats?.badgeCount || 0
+  const userCredits = userStats?.credits ?? user?.credits ?? 0
+  const userBadgeCount = userStats?.badgeCount ?? user?.badges?.length ?? 0
 
   return (
     <Suspense fallback={<Loading />}>

@@ -124,8 +124,8 @@ export const semesters = [
 ];
 
 export const examTypes = [
-    { value: 'mid1', label: 'Mid-1' },
-    { value: 'mid2', label: 'Mid-2' },
+    { value: 'midterm1', label: 'Mid-1' },
+    { value: 'midterm2', label: 'Mid-2' },
     { value: 'semester', label: 'Semester' },
 ];
 
