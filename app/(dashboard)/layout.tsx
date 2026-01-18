@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth-store'
 import { useUIStore } from '@/stores/ui-store'
-import { sampleNotifications, currentUser } from '@/lib/mock-data'
+import { sampleNotifications } from '@/lib/mock-data'
 import {
   GraduationCap,
   Home,
@@ -48,12 +48,10 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const { logout } = useAuthStore()
+  const { user, logout } = useAuthStore()
   const { notifications, unreadCount, setNotifications } = useUIStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Use mock data for demo
-  const user = currentUser
   const displayNotifications = notifications.length > 0 ? notifications : sampleNotifications
   const displayUnreadCount = unreadCount > 0 ? unreadCount : sampleNotifications.filter(n => !n.read).length
 
@@ -82,11 +80,10 @@ export default function DashboardLayout({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                    }`}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      }`}
                   >
                     <Icon className="w-4 h-4" />
                     {item.label}
@@ -141,28 +138,22 @@ export default function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-2">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium text-sm">
-                      {user.name.charAt(0)}
+                      {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
-                      {user.name.split(' ')[0]}
+                      {user?.name?.split(' ')[0] || 'User'}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="p-3 border-b border-border">
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="font-semibold">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
                   </div>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile?tab=settings" className="cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -207,11 +198,10 @@ export default function DashboardLayout({
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                        isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                      }`}
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className="w-5 h-5" />

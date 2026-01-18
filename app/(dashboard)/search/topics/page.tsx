@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useForm, Controller } from 'react-hook-form'
@@ -17,9 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { collegeOptions, branchOptions, semesterOptions, subjectOptions, examTypeOptions } from '@/lib/mock-data'
+import { topicsApi, statsApi } from '@/lib/api'
 import { Search, TrendingUp, FileText, Loader2, AlertCircle } from 'lucide-react'
-import type { ITopicFilters } from '@/types'
+import type { ITopicFilters, ITopicResult } from '@/types'
 
 const topicSearchSchema = z.object({
   college: z.string().min(1, 'Please select a college'),
@@ -31,39 +31,60 @@ const topicSearchSchema = z.object({
 
 type TopicSearchFormData = z.infer<typeof topicSearchSchema>
 
-// Mock topic results
-const mockTopicResults = {
-  partA: {
-    topics: [
-      { name: 'Binary Search Trees', count: 45 },
-      { name: 'Hashing Techniques', count: 38 },
-      { name: 'Sorting Algorithms', count: 34 },
-      { name: 'Graph Traversal', count: 31 },
-      { name: 'Dynamic Programming', count: 28 },
-    ],
-    total: 40
-  },
-  partB: {
-    topics: [
-      { name: 'Dijkstra\'s Algorithm', count: 22 },
-      { name: 'B+ Tree Implementation', count: 19 },
-      { name: 'Red-Black Trees', count: 18 },
-      { name: 'Greedy Algorithms', count: 16 },
-      { name: 'Backtracking', count: 14 },
-    ],
-    total: 25
-  }
-}
+const semesterOptions = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th']
+const examTypeOptions = [
+  { value: 'semester', label: 'Semester Exam' },
+  { value: 'midterm1', label: 'Midterm 1' },
+  { value: 'midterm2', label: 'Midterm 2' },
+]
 
 export default function SearchTopicsPage() {
   const router = useRouter()
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const [results, setResults] = useState<typeof mockTopicResults | null>(null)
+  const [results, setResults] = useState<ITopicResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Dynamic filter options from API
+  const [collegeOptions, setCollegeOptions] = useState<string[]>([])
+  const [subjectOptions, setSubjectOptions] = useState<string[]>([])
+  const [branchOptions, setBranchOptions] = useState<string[]>([])
+  const [optionsLoading, setOptionsLoading] = useState(true)
+
+  // Fetch filter options on mount
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setOptionsLoading(true)
+      try {
+        const [collegesRes, subjectsRes, branchesRes] = await Promise.all([
+          statsApi.getColleges(),
+          statsApi.getSubjects(),
+          statsApi.getBranches()
+        ])
+
+        if (collegesRes.success && collegesRes.data) {
+          setCollegeOptions(collegesRes.data)
+        }
+        if (subjectsRes.success && subjectsRes.data) {
+          setSubjectOptions(subjectsRes.data)
+        }
+        if (branchesRes.success && branchesRes.data) {
+          setBranchOptions(branchesRes.data)
+        }
+      } catch (err) {
+        console.error('Error fetching filter options:', err)
+      } finally {
+        setOptionsLoading(false)
+      }
+    }
+
+    fetchOptions()
+  }, [])
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors, isValid },
   } = useForm<TopicSearchFormData>({
     resolver: zodResolver(topicSearchSchema),
@@ -80,19 +101,43 @@ export default function SearchTopicsPage() {
   const onSubmit = async (data: TopicSearchFormData) => {
     setIsSearching(true)
     setHasSearched(false)
+    setError(null)
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      // Exclude branch for top topics aggregation
+      // We want topics for this Subject/Semester/ExamType across ALL branches (or specific if strictly filtered, 
+      // but new endpoint aggregates). 
+      // The getTop endpoint expects: college, subject, semester, examType
+      const { branch, ...filters } = {
+        college: data.college,
+        subject: data.subject,
+        semester: data.semester,
+        branch: data.branch,
+        examType: data.examType,
+      }
 
-    // In production, call: topicsApi.search(data)
-    setResults(mockTopicResults)
-    setHasSearched(true)
-    setIsSearching(false)
+      const response = await topicsApi.getTop(filters)
+
+      if (response.success && response.data) {
+        setResults(response.data)
+        setHasSearched(true)
+      } else {
+        setError(response.error || 'Failed to search topics')
+        setResults(null)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setResults(null)
+    } finally {
+      setIsSearching(false)
+      setHasSearched(true)
+    }
   }
 
   const viewAllTopics = (part: 'A' | 'B') => {
+    const values = getValues()
     const params = new URLSearchParams()
-    Object.entries(control._formValues).forEach(([key, value]) => {
+    Object.entries(values).forEach(([key, value]) => {
       if (value) params.append(key, value as string)
     })
     params.append('part', part)
@@ -132,14 +177,18 @@ export default function SearchTopicsPage() {
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select college" />
+                        <SelectValue placeholder={optionsLoading ? "Loading..." : "Select college"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {collegeOptions.map((college) => (
-                          <SelectItem key={college} value={college}>
-                            {college}
-                          </SelectItem>
-                        ))}
+                        {collegeOptions.length === 0 && !optionsLoading ? (
+                          <SelectItem value="no-data" disabled>No colleges found</SelectItem>
+                        ) : (
+                          collegeOptions.map((college) => (
+                            <SelectItem key={college} value={college}>
+                              {college}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -158,14 +207,18 @@ export default function SearchTopicsPage() {
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select subject" />
+                        <SelectValue placeholder={optionsLoading ? "Loading..." : "Select subject"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {subjectOptions.map((subject) => (
-                          <SelectItem key={subject} value={subject}>
-                            {subject}
-                          </SelectItem>
-                        ))}
+                        {subjectOptions.length === 0 && !optionsLoading ? (
+                          <SelectItem value="no-data" disabled>No subjects found</SelectItem>
+                        ) : (
+                          subjectOptions.map((subject) => (
+                            <SelectItem key={subject} value={subject}>
+                              {subject}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -210,14 +263,18 @@ export default function SearchTopicsPage() {
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select branch" />
+                        <SelectValue placeholder={optionsLoading ? "Loading..." : "Select branch"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {branchOptions.map((branch) => (
-                          <SelectItem key={branch} value={branch}>
-                            {branch}
-                          </SelectItem>
-                        ))}
+                        {branchOptions.length === 0 && !optionsLoading ? (
+                          <SelectItem value="no-data" disabled>No branches found</SelectItem>
+                        ) : (
+                          branchOptions.map((branch) => (
+                            <SelectItem key={branch} value={branch}>
+                              {branch}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -254,9 +311,9 @@ export default function SearchTopicsPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full gap-2" 
+            <Button
+              type="submit"
+              className="w-full gap-2"
               size="lg"
               disabled={!isValid || isSearching}
             >
@@ -275,6 +332,21 @@ export default function SearchTopicsPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Error State */}
+      {error && hasSearched && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-destructive/50 bg-destructive/10">
+            <CardContent className="flex items-center gap-3 py-4">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+              <p className="text-destructive">{error}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Results */}
       {hasSearched && results && (
@@ -300,38 +372,35 @@ export default function SearchTopicsPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-3 mb-6">
-                {results.partA.topics.map((topic, index) => (
-                  <div 
-                    key={topic.name}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium text-foreground">{topic.name}</span>
-                    </div>
-                    <Badge 
-                      className={`
-                        ${topic.count >= 40 ? 'bg-red-500' : ''}
-                        ${topic.count >= 30 && topic.count < 40 ? 'bg-orange-500' : ''}
-                        ${topic.count < 30 ? 'bg-blue-500' : ''}
-                      `}
+              {results.partA.topics.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No topics found for this combination</p>
+              ) : (
+                <div className="space-y-2 mb-4 max-h-[500px] overflow-y-auto pr-2">
+                  {results.partA.topics.map((topic, index) => (
+                    <div
+                      key={topic.name}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                     >
-                      {topic.count}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full gap-2"
-                onClick={() => viewAllTopics('A')}
-              >
-                View All {results.partA.total} Topics
-                <TrendingUp className="w-4 h-4" />
-              </Button>
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </span>
+                        <span className="font-medium text-foreground">{topic.name}</span>
+                      </div>
+                      <Badge
+                        className={`
+                          ${topic.count >= 10 ? 'bg-red-500' : ''}
+                          ${topic.count >= 5 && topic.count < 10 ? 'bg-orange-500' : ''}
+                          ${topic.count < 5 ? 'bg-blue-500' : ''}
+                        `}
+                      >
+                        {topic.count}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+
             </CardContent>
           </Card>
 
@@ -352,44 +421,41 @@ export default function SearchTopicsPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-3 mb-6">
-                {results.partB.topics.map((topic, index) => (
-                  <div 
-                    key={topic.name}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium text-foreground">{topic.name}</span>
-                    </div>
-                    <Badge 
-                      className={`
-                        ${topic.count >= 20 ? 'bg-red-500' : ''}
-                        ${topic.count >= 15 && topic.count < 20 ? 'bg-orange-500' : ''}
-                        ${topic.count < 15 ? 'bg-blue-500' : ''}
-                      `}
+              {results.partB.topics.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No topics found for this combination</p>
+              ) : (
+                <div className="space-y-2 mb-4 max-h-[400px] overflow-y-auto pr-2">
+                  {results.partB.topics.map((topic, index) => (
+                    <div
+                      key={topic.name}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                     >
-                      {topic.count}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full gap-2"
-                onClick={() => viewAllTopics('B')}
-              >
-                View All {results.partB.total} Topics
-                <TrendingUp className="w-4 h-4" />
-              </Button>
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </span>
+                        <span className="font-medium text-foreground">{topic.name}</span>
+                      </div>
+                      <Badge
+                        className={`
+                          ${topic.count >= 5 ? 'bg-red-500' : ''}
+                          ${topic.count >= 3 && topic.count < 5 ? 'bg-orange-500' : ''}
+                          ${topic.count < 3 ? 'bg-blue-500' : ''}
+                        `}
+                      >
+                        {topic.count}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State - No Search Yet */}
       {!hasSearched && !isSearching && (
         <Card className="py-12">
           <CardContent className="flex flex-col items-center text-center">
@@ -401,6 +467,23 @@ export default function SearchTopicsPage() {
             </h3>
             <p className="text-muted-foreground max-w-md">
               Fill in all required fields above and click "Search Topics" to discover frequently-repeated exam topics.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty Results State */}
+      {hasSearched && results && results.partA.topics.length === 0 && results.partB.topics.length === 0 && (
+        <Card className="py-12">
+          <CardContent className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No Topics Found
+            </h3>
+            <p className="text-muted-foreground max-w-md">
+              No topics were found for this combination. Try different filter criteria or upload papers to build the topic database.
             </p>
           </CardContent>
         </Card>

@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { currentUser, samplePapers, sampleTopics, badges } from '@/lib/mock-data'
+import { useAuthStore } from '@/stores/auth-store'
+import { papersApi, usersApi, statsApi } from '@/lib/api'
+import { badges as defaultBadges } from '@/lib/mock-data'
+import type { IPaper, IUserStats, IPlatformStats } from '@/types'
 import {
   Upload,
   Search,
@@ -17,10 +20,10 @@ import {
   Eye,
   Award,
   FileText,
-  Clock,
   ArrowRight,
   Sparkles,
   ChevronRight,
+  Loader2,
 } from 'lucide-react'
 
 // Loading Component
@@ -34,14 +37,20 @@ function StatCard({
   label,
   value,
   change,
-  color
+  color,
+  loading = false
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string | number
   change?: string
   color: string
+  loading?: boolean
 }) {
+  if (loading) {
+    return <Skeleton className="h-[140px] rounded-xl" />
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -68,81 +77,58 @@ function StatCard({
   )
 }
 
-// Paper Card Component
-function PaperCard({ paper }: { paper: typeof samplePapers[0] }) {
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="bg-card rounded-xl border border-border p-4 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
-    >
-      <Link href={`/papers/${paper._id}`}>
-        <div className="flex items-start justify-between mb-3">
-          <Badge variant="secondary" className="text-xs">
-            {paper.examType === 'semester' ? 'Semester' : `Midterm ${paper.examType.slice(-1)}`}
-          </Badge>
-          {paper.verified && (
-            <Badge className="bg-green-500/10 text-green-600 text-xs">Verified</Badge>
-          )}
-        </div>
-        <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1">
-          {paper.subject}
-        </h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          {paper.college.split(' - ')[0]} • {paper.semester} Sem
-        </p>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Heart className="w-4 h-4" />
-              {paper.likes}
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye className="w-4 h-4" />
-              {paper.viewCount}
-            </span>
-          </div>
-          <span>{paper.year}</span>
-        </div>
-      </Link>
-    </motion.div>
-  )
-}
-
-// Topic Item Component
-function TopicItem({ topic, rank }: { topic: typeof sampleTopics[0]; rank: number }) {
-  const getColor = () => {
-    if (topic.count >= 40) return 'bg-red-500'
-    if (topic.count >= 30) return 'bg-orange-500'
-    return 'bg-blue-500'
-  }
-
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-      <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-        {rank}
-      </span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">{topic.name}</p>
-      </div>
-      <Badge className={`${getColor()} text-white text-xs`}>
-        {topic.count}
-      </Badge>
-    </div>
-  )
-}
+import { PaperCard } from '@/components/papers/paper-card'
 
 export default function DashboardPage() {
+  const { user, isAuthenticated } = useAuthStore()
   const [isLoading, setIsLoading] = useState(true)
+  const [recentPapers, setRecentPapers] = useState<IPaper[]>([])
+  const [userStats, setUserStats] = useState<IUserStats | null>(null)
+  const [platformStats, setPlatformStats] = useState<IPlatformStats | null>(null)
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchDashboardData = async () => {
+      setIsLoading(true)
+      try {
+        // Fetch data in parallel
+        const [papersRes, statsRes, platformRes] = await Promise.all([
+          papersApi.search({}, 1, 6),
+          isAuthenticated ? usersApi.getStats() : Promise.resolve({ success: false }),
+          statsApi.getPlatformStats()
+        ])
 
-  const user = currentUser
-  const recentPapers = samplePapers.slice(0, 3)
-  const trendingTopics = sampleTopics.slice(0, 5)
+        // Handle papers response
+        if (papersRes.success && papersRes.data) {
+          const data = papersRes.data as any
+          if (Array.isArray(data)) {
+            setRecentPapers(data.slice(0, 3))
+          } else if (data.data && Array.isArray(data.data)) {
+            setRecentPapers(data.data.slice(0, 3))
+          }
+        }
+
+        // Handle user stats
+        if (statsRes.success && statsRes.data) {
+          setUserStats(statsRes.data)
+        }
+
+        // Handle platform stats
+        if (platformRes.success && platformRes.data) {
+          setPlatformStats(platformRes.data)
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [isAuthenticated])
+
+  const displayName = user?.name?.split(' ')[0] || 'there'
+  const userCredits = user?.credits || userStats?.totalUploads ? (userStats?.totalUploads || 0) * 10 : 0
+  const userBadgeCount = user?.badges?.length || userStats?.badgeCount || 0
 
   return (
     <Suspense fallback={<Loading />}>
@@ -155,7 +141,7 @@ export default function DashboardPage() {
         >
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Welcome back, {user.name.split(' ')[0]}!
+              Welcome back, {displayName}!
             </h1>
             <p className="text-muted-foreground mt-1">
               Here's what's happening with your exam preparation today.
@@ -179,40 +165,34 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {isLoading ? (
-            [...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-[140px] rounded-xl" />
-            ))
-          ) : (
-            <>
-              <StatCard
-                icon={FileText}
-                label="Papers Uploaded"
-                value={user.badges.length * 5}
-                change="+3 this week"
-                color="bg-blue-500"
-              />
-              <StatCard
-                icon={Heart}
-                label="Total Likes"
-                value={142}
-                change="+12%"
-                color="bg-pink-500"
-              />
-              <StatCard
-                icon={Sparkles}
-                label="Credits Earned"
-                value={user.credits}
-                color="bg-purple-500"
-              />
-              <StatCard
-                icon={Award}
-                label="Badges Earned"
-                value={user.badges.length}
-                color="bg-amber-500"
-              />
-            </>
-          )}
+          <StatCard
+            icon={FileText}
+            label="Papers Uploaded"
+            value={userStats?.totalUploads || 0}
+            loading={isLoading}
+            color="bg-blue-500"
+          />
+          <StatCard
+            icon={Heart}
+            label="Total Likes"
+            value={userStats?.totalLikes || 0}
+            loading={isLoading}
+            color="bg-pink-500"
+          />
+          <StatCard
+            icon={Sparkles}
+            label="Credits Earned"
+            value={user?.credits || userCredits}
+            loading={isLoading}
+            color="bg-purple-500"
+          />
+          <StatCard
+            icon={Award}
+            label="Badges Earned"
+            value={userBadgeCount}
+            loading={isLoading}
+            color="bg-amber-500"
+          />
         </div>
 
         {/* Quick Actions */}
@@ -271,7 +251,7 @@ export default function DashboardPage() {
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Recommended Papers */}
+          {/* Recent Papers */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -281,8 +261,8 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg">Recommended for You</CardTitle>
-                  <CardDescription>Papers matching your profile</CardDescription>
+                  <CardTitle className="text-lg">Recent Papers</CardTitle>
+                  <CardDescription>Recently uploaded papers</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/search/papers">
@@ -298,10 +278,24 @@ export default function DashboardPage() {
                       <Skeleton key={i} className="h-[160px] rounded-xl" />
                     ))}
                   </div>
+                ) : recentPapers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+                    <h3 className="font-medium text-foreground mb-2">No papers yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Be the first to upload an exam paper!
+                    </p>
+                    <Button asChild>
+                      <Link href="/upload">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Paper
+                      </Link>
+                    </Button>
+                  </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {recentPapers.map((paper) => (
-                      <PaperCard key={paper._id} paper={paper} />
+                      <PaperCard key={paper._id} paper={paper} variant="minimal" />
                     ))}
                   </div>
                 )}
@@ -309,45 +303,54 @@ export default function DashboardPage() {
             </Card>
           </motion.div>
 
-          {/* Trending Topics */}
+          {/* Platform Stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Trending Topics</CardTitle>
-                  <CardDescription>Most asked questions</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/search/topics">
-                    View all
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
+              <CardHeader>
+                <CardTitle className="text-lg">Platform Stats</CardTitle>
+                <CardDescription>Our growing community</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="space-y-4">
                 {isLoading ? (
-                  <div className="p-4 space-y-2">
-                    {[...Array(5)].map((_, i) => (
+                  <>
+                    {[...Array(4)].map((_, i) => (
                       <Skeleton key={i} className="h-12 rounded-lg" />
                     ))}
-                  </div>
+                  </>
+                ) : platformStats ? (
+                  <>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <span className="text-sm text-muted-foreground">Total Users</span>
+                      <span className="font-bold text-foreground">{platformStats.totalUsers?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <span className="text-sm text-muted-foreground">Total Papers</span>
+                      <span className="font-bold text-foreground">{platformStats.totalPapers?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <span className="text-sm text-muted-foreground">Colleges</span>
+                      <span className="font-bold text-foreground">{platformStats.totalColleges?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <span className="text-sm text-muted-foreground">Topics Analyzed</span>
+                      <span className="font-bold text-foreground">{platformStats.totalTopics?.toLocaleString() || 0}</span>
+                    </div>
+                  </>
                 ) : (
-                  <div className="px-2 pb-2">
-                    {trendingTopics.map((topic, index) => (
-                      <TopicItem key={topic.name} topic={topic} rank={index + 1} />
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Unable to load platform stats
+                  </p>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Badges Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -360,8 +363,8 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4">
-                {badges.slice(0, 6).map((badge, index) => {
-                  const isUnlocked = index < user.badges.length
+                {defaultBadges.slice(0, 6).map((badge, index) => {
+                  const isUnlocked = index < (user?.badges?.length || 0)
                   return (
                     <div
                       key={badge.badgeId}

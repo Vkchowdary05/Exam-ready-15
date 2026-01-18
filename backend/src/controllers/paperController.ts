@@ -206,11 +206,11 @@ export const confirmPaper = asyncHandler(
  */
 export const searchPapers = asyncHandler(async (req: Request, res: Response) => {
     const {
-        'college[]': colleges,
-        'subject[]': subjects,
-        'semester[]': semesters,
-        'branch[]': branches,
-        'examType[]': examTypes,
+        college,
+        subject,
+        semester,
+        branch,
+        examType,
         yearStart,
         yearEnd,
         sortBy = 'recent',
@@ -218,6 +218,19 @@ export const searchPapers = asyncHandler(async (req: Request, res: Response) => 
         pageSize = 20,
         recommended,
     } = req.query;
+
+    // Helper to ensure array
+    const toArray = (val: any): string[] => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val as string[];
+        return [val as string];
+    };
+
+    const colleges = toArray(college);
+    const subjects = toArray(subject);
+    const semesters = toArray(semester);
+    const branches = toArray(branch);
+    const examTypes = toArray(examType);
 
     // Build query
     const query: any = {};
@@ -261,17 +274,22 @@ export const searchPapers = asyncHandler(async (req: Request, res: Response) => 
     const skip = (Number(page) - 1) * Number(pageSize);
     const limit = Math.min(Number(pageSize), 100);
 
-    // Execute query
-    const [papers, totalCount] = await Promise.all([
-        Paper.find(query)
+    try {
+        // Execute query with populate
+        const papers = await Paper.find(query)
             .populate('uploadedBy', 'name profilePicture badges')
             .sort(sort)
             .skip(skip)
-            .limit(limit),
-        Paper.countDocuments(query),
-    ]);
+            .limit(limit)
+            .lean();
 
-    return sendPaginatedSuccess(res, papers, totalCount, Number(page), limit);
+        const totalCount = await Paper.countDocuments(query);
+
+        return sendPaginatedSuccess(res, papers, totalCount, Number(page), limit);
+    } catch (error) {
+        logger.error('searchPapers error:', error);
+        throw error;
+    }
 });
 
 /**

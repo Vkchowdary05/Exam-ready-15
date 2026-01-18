@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,7 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuthStore } from '@/stores/auth-store'
-import { currentUser, badges, samplePapers } from '@/lib/mock-data'
+import { badges, samplePapers } from '@/lib/mock-data'
+import { usersApi, papersApi } from '@/lib/api'
+import { toast } from 'sonner'
 import {
   User,
   Mail,
@@ -47,7 +49,6 @@ const profileSchema = z.object({
 })
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6),
   newPassword: z.string().min(8),
   confirmPassword: z.string().min(8),
 }).refine((data) => data.newPassword === data.confirmPassword, {
@@ -56,11 +57,15 @@ const passwordSchema = z.object({
 })
 
 export default function ProfileSettingsPage() {
-  const { user, updateProfile } = useAuthStore()
+  const { user, updateProfile, isLoading: isAuthLoading } = useAuthStore()
   const [activeTab, setActiveTab] = useState('profile')
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState('modern')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<'simple' | 'modern' | 'tech' | 'nerdy'>(user?.theme || 'modern')
+  const [myUploads, setMyUploads] = useState<any[]>([])
+  const [userStats, setUserStats] = useState<{ credits: number; totalUploads: number; totalLikes: number } | null>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
 
   const {
     register: registerProfile,
@@ -69,11 +74,11 @@ export default function ProfileSettingsPage() {
   } = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: currentUser.name,
-      bio: currentUser.bio || '',
-      linkedinUrl: currentUser.socialLinks?.linkedin || '',
-      githubUrl: currentUser.socialLinks?.github || '',
-      twitterUrl: currentUser.socialLinks?.twitter || '',
+      name: user?.name || '',
+      bio: user?.bio || '',
+      linkedinUrl: user?.socialLinks?.linkedin || '',
+      githubUrl: user?.socialLinks?.github || '',
+      twitterUrl: user?.socialLinks?.twitter || '',
     },
   })
 
@@ -102,10 +107,33 @@ export default function ProfileSettingsPage() {
   }
 
   const onPasswordSubmit = async (data: any) => {
-    setIsSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    resetPassword()
-    setIsSaving(false)
+    setIsChangingPassword(true)
+    try {
+      const response = await usersApi.changePassword('', data.newPassword)
+      if (response.success) {
+        toast.success('Password changed successfully')
+        resetPassword()
+      } else {
+        toast.error(response.error || 'Failed to change password')
+      }
+    } catch (err) {
+      toast.error('An error occurred while changing password')
+    }
+    setIsChangingPassword(false)
+  }
+
+  const handleThemeChange = async (theme: 'simple' | 'modern' | 'tech' | 'nerdy') => {
+    setSelectedTheme(theme)
+    // Apply theme to document
+    document.documentElement.classList.remove('theme-simple', 'theme-modern', 'theme-nerdy', 'theme-tech')
+    document.documentElement.classList.add(`theme-${theme}`)
+    // Persist to backend
+    try {
+      await usersApi.updateSettings({ theme })
+      updateProfile({ theme })
+    } catch (err) {
+      console.error('Failed to save theme preference:', err)
+    }
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +145,66 @@ export default function ProfileSettingsPage() {
     setIsUploading(false)
   }
 
-  const myUploads = samplePapers.filter(p => p.uploadedBy === currentUser._id || p.uploadedBy === currentUser)
+  // Fetch user's uploads and stats
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch uploads
+      try {
+        const response = await papersApi.getMyUploads()
+        if (response.success && response.data) {
+          setMyUploads(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching uploads:', err)
+      }
+
+      // Fetch user stats
+      try {
+        setIsLoadingStats(true)
+        const statsResponse = await usersApi.getStats()
+        if (statsResponse.success && statsResponse.data) {
+          setUserStats({
+            credits: statsResponse.data.credits,
+            totalUploads: statsResponse.data.totalUploads,
+            totalLikes: statsResponse.data.totalLikes
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err)
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+    fetchData()
+
+    // Apply saved theme on mount
+    if (user?.theme) {
+      document.documentElement.classList.remove('theme-simple', 'theme-modern', 'theme-nerdy', 'theme-tech')
+      document.documentElement.classList.add(`theme-${user.theme}`)
+    }
+  }, [])
+
+  // Handle hydration - don't render until client-side
+  const [hasMounted, setHasMounted] = useState(false)
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
+  if (!hasMounted || isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Please log in to view your profile.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -154,7 +241,7 @@ export default function ProfileSettingsPage() {
                     <div className="flex items-center gap-6">
                       <div className="relative group">
                         <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-3xl font-bold">
-                          {currentUser.name.charAt(0)}
+                          {user.name?.charAt(0).toUpperCase()}
                         </div>
                         <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                           <Camera className="w-6 h-6 text-white" />
@@ -189,7 +276,7 @@ export default function ProfileSettingsPage() {
                     {/* Email (readonly) */}
                     <div className="space-y-2">
                       <Label>Email</Label>
-                      <Input value={currentUser.email} disabled />
+                      <Input value={user.email} disabled />
                       <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                     </div>
 
@@ -269,15 +356,21 @@ export default function ProfileSettingsPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Credits</span>
-                    <span className="font-bold text-xl text-foreground">{currentUser.credits}</span>
+                    <span className="font-bold text-xl text-foreground">
+                      {isLoadingStats ? '...' : (userStats?.credits ?? user.credits ?? 0)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Uploads</span>
-                    <span className="font-bold text-xl text-foreground">{myUploads.length}</span>
+                    <span className="font-bold text-xl text-foreground">
+                      {isLoadingStats ? '...' : (userStats?.totalUploads ?? myUploads.length)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Total Likes</span>
-                    <span className="font-bold text-xl text-foreground">142</span>
+                    <span className="font-bold text-xl text-foreground">
+                      {isLoadingStats ? '...' : (userStats?.totalLikes ?? 0)}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -293,13 +386,13 @@ export default function ProfileSettingsPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
                     {badges.slice(0, 6).map((badge, index) => {
-                      const isUnlocked = index < currentUser.badges.length
+                      const isUnlocked = index < (user.badges?.length || 0)
                       return (
                         <div
                           key={badge.badgeId}
                           className={`p-3 rounded-lg border text-center ${isUnlocked
-                              ? 'border-primary/30 bg-primary/5'
-                              : 'border-border bg-muted/30 opacity-50'
+                            ? 'border-primary/30 bg-primary/5'
+                            : 'border-border bg-muted/30 opacity-50'
                             }`}
                         >
                           <Award className={`w-8 h-8 mx-auto mb-2 ${isUnlocked ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -400,13 +493,6 @@ export default function ProfileSettingsPage() {
             <CardContent>
               <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Current Password</Label>
-                  <Input type="password" {...registerPassword('currentPassword')} />
-                  {passwordErrors.currentPassword && (
-                    <p className="text-sm text-destructive">{String(passwordErrors.currentPassword.message)}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
                   <Label>New Password</Label>
                   <Input type="password" {...registerPassword('newPassword')} />
                   {passwordErrors.newPassword && (
@@ -420,8 +506,8 @@ export default function ProfileSettingsPage() {
                     <p className="text-sm text-destructive">{String(passwordErrors.confirmPassword.message)}</p>
                   )}
                 </div>
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? 'Updating...' : 'Update Password'}
+                <Button type="submit" disabled={isChangingPassword}>
+                  {isChangingPassword ? 'Updating...' : 'Update Password'}
                 </Button>
               </form>
             </CardContent>
@@ -459,17 +545,17 @@ export default function ProfileSettingsPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { id: 'simple', name: 'Simple', color: 'bg-gray-500' },
-                  { id: 'modern', name: 'Modern', color: 'bg-indigo-500' },
-                  { id: 'tech', name: 'Tech', color: 'bg-cyan-500' },
-                  { id: 'nerdy', name: 'Nerdy', color: 'bg-green-500' },
+                  { id: 'simple', name: 'Simple', color: 'bg-blue-600', desc: 'Clean & minimal' },
+                  { id: 'modern', name: 'Modern', color: 'bg-indigo-500', desc: 'Soft & elegant' },
+                  { id: 'tech', name: 'Tech', color: 'bg-green-500', desc: 'Dark & futuristic' },
+                  { id: 'nerdy', name: 'Nerdy', color: 'bg-sky-400', desc: 'Developer-focused' },
                 ].map((theme) => (
                   <button
                     key={theme.id}
-                    onClick={() => setSelectedTheme(theme.id)}
+                    onClick={() => handleThemeChange(theme.id as 'simple' | 'modern' | 'tech' | 'nerdy')}
                     className={`p-4 rounded-lg border-2 transition-all ${selectedTheme === theme.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/30'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
                       }`}
                   >
                     <div className={`w-full h-16 rounded ${theme.color} mb-2`} />

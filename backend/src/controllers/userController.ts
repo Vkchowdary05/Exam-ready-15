@@ -247,10 +247,12 @@ export const changePassword = asyncHandler(
             return sendError(res, ErrorTypes.NOT_FOUND, 'User not found', 404);
         }
 
-        // Verify current password
-        const isValid = await user.comparePassword(currentPassword);
-        if (!isValid) {
-            return sendError(res, ErrorTypes.INVALID_CREDENTIALS, 'Current password is incorrect', 400);
+        // Only verify current password if provided (skip for simple password change)
+        if (currentPassword && currentPassword.trim() !== '') {
+            const isValid = await user.comparePassword(currentPassword);
+            if (!isValid) {
+                return sendError(res, ErrorTypes.INVALID_CREDENTIALS, 'Current password is incorrect', 400);
+            }
         }
 
         // Update password

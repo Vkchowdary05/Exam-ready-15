@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest, ExamType } from '../types';
 import { sendSuccess, sendError, ErrorTypes } from '../utils/apiResponse';
 import { asyncHandler } from '../middleware/errorHandler';
-import { getTopics } from '../services/topicService';
+import { getTopics, getTopTopics } from '../services/topicService';
 import { generateStudyPrompt } from '../services/aiService';
 
 /**
@@ -31,6 +31,32 @@ export const searchTopics = asyncHandler(async (req: Request, res: Response) => 
         branch as string,
         examType as ExamType,
         part as 'A' | 'B' | undefined
+    );
+
+    return sendSuccess(res, result);
+});
+
+/**
+ * Get top topics (Top 40 Part A, Top 20 Part B)
+ * GET /api/topics/top
+ */
+export const getTopTopicsHandler = asyncHandler(async (req: Request, res: Response) => {
+    const { college, subject, semester, examType } = req.query;
+
+    if (!college || !subject || !semester || !examType) {
+        return sendError(
+            res,
+            ErrorTypes.VALIDATION_ERROR,
+            'Missing required parameters: college, subject, semester, examType',
+            400
+        );
+    }
+
+    const result = await getTopTopics(
+        college as string,
+        subject as string,
+        semester as string,
+        examType as ExamType
     );
 
     return sendSuccess(res, result);
@@ -63,5 +89,6 @@ export const getStudyPrompt = asyncHandler(async (req: Request, res: Response) =
 
 export default {
     searchTopics,
+    getTopTopicsHandler,
     getStudyPrompt,
 };

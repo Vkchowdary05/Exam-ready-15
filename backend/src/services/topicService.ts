@@ -244,8 +244,113 @@ export async function decrementTopicsForPaper(paperId: Types.ObjectId): Promise<
     }
 }
 
+/**
+ * Get top topics for a specific filter combination
+ * Returns Top 40 Part A topics and Top 20 Part B topics sorted by count
+ */
+export async function getTopTopics(
+    college: string,
+    subject: string,
+    semester: string,
+    examType: ExamType
+): Promise<{ partA: { topics: ITopicEntry[]; total: number }; partB: { topics: ITopicEntry[]; total: number } }> {
+    const baseQuery = {
+        college: { $regex: new RegExp(`^${college}$`, 'i') },
+        subject: { $regex: new RegExp(`^${subject}$`, 'i') },
+        semester,
+        examType,
+    };
+
+    // Fixed limits: Top 40 for Part A, Top 20 for Part B
+    const PART_A_LIMIT = 40;
+    const PART_B_LIMIT = 20;
+
+    let partATopics: ITopicEntry[] = [];
+    let partBTopics: ITopicEntry[] = [];
+    let partATotal = 0;
+    let partBTotal = 0;
+
+    // Get Part A topics - aggregate from all branches
+    const partADocs = await TopicCount.find({ ...baseQuery, part: 'A' }).lean();
+    if (partADocs.length > 0) {
+        // Merge topics from all branches
+        const topicMap = new Map<string, ITopicEntry>();
+        for (const doc of partADocs) {
+            for (const topic of doc.topics) {
+                if (topic.count === 0) continue; // Skip zero-count topics
+                const normalized = topic.name.toLowerCase().trim();
+                const topicData = topic as ITopicEntry; // Type assertion since lean() returns plain objects
+
+                if (topicMap.has(normalized)) {
+                    const existing = topicMap.get(normalized)!;
+                    existing.count += topicData.count;
+                    // Use Set to ensure unique paper IDs strings
+                    const allPapers = new Set([...existing.papers.map(p => p.toString()), ...topicData.papers.map(p => p.toString())]);
+                    existing.papers = Array.from(allPapers).map(id => new Types.ObjectId(id));
+
+                    if (new Date(topicData.lastOccurred) > new Date(existing.lastOccurred)) {
+                        existing.lastOccurred = topicData.lastOccurred;
+                    }
+                } else {
+                    topicMap.set(normalized, {
+                        name: topicData.name,
+                        count: topicData.count,
+                        lastOccurred: topicData.lastOccurred,
+                        papers: topicData.papers
+                    });
+                }
+            }
+        }
+        partATotal = topicMap.size;
+        partATopics = [...topicMap.values()]
+            .sort((a, b) => b.count - a.count)
+            .slice(0, PART_A_LIMIT);
+    }
+
+    // Get Part B topics - aggregate from all branches
+    const partBDocs = await TopicCount.find({ ...baseQuery, part: 'B' }).lean();
+    if (partBDocs.length > 0) {
+        const topicMap = new Map<string, ITopicEntry>();
+        for (const doc of partBDocs) {
+            for (const topic of doc.topics) {
+                if (topic.count === 0) continue; // Skip zero-count topics
+                const normalized = topic.name.toLowerCase().trim();
+                const topicData = topic as ITopicEntry;
+
+                if (topicMap.has(normalized)) {
+                    const existing = topicMap.get(normalized)!;
+                    existing.count += topicData.count;
+                    const allPapers = new Set([...existing.papers.map(p => p.toString()), ...topicData.papers.map(p => p.toString())]);
+                    existing.papers = Array.from(allPapers).map(id => new Types.ObjectId(id));
+
+                    if (new Date(topicData.lastOccurred) > new Date(existing.lastOccurred)) {
+                        existing.lastOccurred = topicData.lastOccurred;
+                    }
+                } else {
+                    topicMap.set(normalized, {
+                        name: topicData.name,
+                        count: topicData.count,
+                        lastOccurred: topicData.lastOccurred,
+                        papers: topicData.papers
+                    });
+                }
+            }
+        }
+        partBTotal = topicMap.size;
+        partBTopics = [...topicMap.values()]
+            .sort((a, b) => b.count - a.count)
+            .slice(0, PART_B_LIMIT);
+    }
+
+    return {
+        partA: { topics: partATopics, total: partATotal },
+        partB: { topics: partBTopics, total: partBTotal },
+    };
+}
+
 export default {
     incrementTopicsForPaper,
     getTopics,
+    getTopTopics,
     decrementTopicsForPaper,
 };

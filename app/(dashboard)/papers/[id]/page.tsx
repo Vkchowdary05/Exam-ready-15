@@ -30,10 +30,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { PaperCard } from "@/components/papers/paper-card";
-import { mockPapers } from "@/lib/mock-data";
+import { papersApi } from "@/lib/api";
 import type { IPaper } from "@/types";
 
-const examTypeLabels = {
+const examTypeLabels: Record<string, string> = {
   semester: "Semester Exam",
   midterm1: "Midterm 1",
   midterm2: "Midterm 2",
@@ -47,32 +47,66 @@ export default function PaperViewPage() {
   const [paper, setPaper] = useState<IPaper | null>(null);
   const [relatedPapers, setRelatedPapers] = useState<IPaper[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [copied, setCopied] = useState(false);
   const [imageZoom, setImageZoom] = useState(100);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const found = mockPapers.find((p) => p._id === params.id);
-      if (found) {
-        setPaper(found);
-        setLikeCount(found.likes);
-        // Get related papers (same subject, different years)
-        const related = mockPapers
-          .filter((p) => p.subject === found.subject && p._id !== found._id)
-          .slice(0, 4);
-        setRelatedPapers(related);
+    const fetchPaper = async () => {
+      if (!params.id) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Fetch paper by ID from API
+        const paperResponse = await papersApi.getById(params.id as string);
+
+        if (paperResponse.success && paperResponse.data) {
+          setPaper(paperResponse.data);
+          setLikeCount(paperResponse.data.likes || 0);
+
+          // Fetch related papers
+          const relatedResponse = await papersApi.getRelated(params.id as string);
+          if (relatedResponse.success && relatedResponse.data) {
+            setRelatedPapers(relatedResponse.data.slice(0, 4));
+          }
+        } else {
+          setError(paperResponse.error || "Paper not found");
+        }
+      } catch (err) {
+        setError("Failed to load paper");
+        console.error("Error fetching paper:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    };
+
+    fetchPaper();
   }, [params.id]);
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+  const handleLike = async () => {
+    if (!params.id) return;
+
+    // Optimistic update
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
+
+    try {
+      const response = await papersApi.like(params.id as string);
+      if (response.success && response.data) {
+        setLiked(response.data.liked);
+        setLikeCount(response.data.likes);
+      }
+    } catch (err) {
+      // Revert on error
+      setLiked(wasLiked);
+      setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
+      console.error("Error liking paper:", err);
+    }
   };
 
   const handleShare = async () => {
@@ -112,25 +146,25 @@ export default function PaperViewPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-neutral-50/50 dark:bg-black">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-sm">
         <Link
           href="/dashboard"
-          className="flex items-center text-neutral-400 transition-colors hover:text-white"
+          className="flex items-center text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
         >
           <Home className="mr-1 h-4 w-4" />
           Home
         </Link>
-        <ChevronRight className="h-4 w-4 text-neutral-600" />
+        <ChevronRight className="h-4 w-4 text-neutral-400" />
         <Link
           href="/search/papers"
-          className="text-neutral-400 transition-colors hover:text-white"
+          className="text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
         >
           Search
         </Link>
-        <ChevronRight className="h-4 w-4 text-neutral-600" />
-        <span className="truncate text-white">{paper.subject}</span>
+        <ChevronRight className="h-4 w-4 text-neutral-400" />
+        <span className="truncate text-neutral-900 dark:text-white font-medium">{paper.subject}</span>
       </nav>
 
       {/* Paper Header */}
@@ -142,15 +176,15 @@ export default function PaperViewPage() {
         <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-white">{paper.subject}</h1>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">{paper.subject}</h1>
               {paper.verified && (
-                <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                   <CheckCircle className="mr-1 h-3.5 w-3.5" />
                   Verified
                 </Badge>
               )}
             </div>
-            <p className="text-lg text-neutral-400">{paper.college}</p>
+            <p className="text-lg text-neutral-500 dark:text-neutral-400">{paper.college}</p>
           </div>
 
           {/* Action Buttons */}
@@ -158,11 +192,10 @@ export default function PaperViewPage() {
             <Button
               variant="outline"
               onClick={handleLike}
-              className={`border-white/10 bg-transparent ${
-                liked
-                  ? "border-pink-500/50 text-pink-400"
-                  : "text-neutral-300 hover:bg-white/5"
-              }`}
+              className={`border-neutral-200 dark:border-white/10 bg-white dark:bg-transparent shadow-sm ${liked
+                ? "border-pink-300 text-pink-600 dark:border-pink-500/50 dark:text-pink-400"
+                : "text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5"
+                }`}
             >
               <Heart className={`mr-2 h-4 w-4 ${liked ? "fill-current" : ""}`} />
               {likeCount}
@@ -170,10 +203,10 @@ export default function PaperViewPage() {
             <Button
               variant="outline"
               onClick={handleShare}
-              className="border-white/10 bg-transparent text-neutral-300 hover:bg-white/5"
+              className="border-neutral-200 dark:border-white/10 bg-white dark:bg-transparent text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 shadow-sm"
             >
               {copied ? (
-                <Check className="mr-2 h-4 w-4 text-emerald-400" />
+                <Check className="mr-2 h-4 w-4 text-emerald-500" />
               ) : (
                 <Share2 className="mr-2 h-4 w-4" />
               )}
@@ -181,21 +214,21 @@ export default function PaperViewPage() {
             </Button>
             <Button
               variant="outline"
-              className="border-white/10 bg-transparent text-neutral-300 hover:bg-white/5"
+              className="border-neutral-200 dark:border-white/10 bg-white dark:bg-transparent text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 shadow-sm"
             >
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
             <Button
               variant="outline"
-              className="border-white/10 bg-transparent text-neutral-300 hover:bg-white/5"
+              className="border-neutral-200 dark:border-white/10 bg-white dark:bg-transparent text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 shadow-sm"
             >
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
             <Button
               variant="outline"
-              className="border-white/10 bg-transparent text-neutral-300 hover:bg-white/5"
+              className="border-neutral-200 dark:border-white/10 bg-white dark:bg-transparent text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/5 shadow-sm"
             >
               <Flag className="mr-2 h-4 w-4" />
               Report
@@ -205,20 +238,20 @@ export default function PaperViewPage() {
 
         {/* Meta Info */}
         <div className="flex flex-wrap gap-3">
-          <Badge variant="outline" className="border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
+          <Badge variant="outline" className="border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400">
             {examTypeLabels[paper.examType]}
           </Badge>
-          <Badge variant="outline" className="border-white/10 bg-white/5 text-neutral-300">
+          <Badge variant="outline" className="border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300">
             Semester {paper.semester}
           </Badge>
-          <Badge variant="outline" className="border-white/10 bg-white/5 text-neutral-300">
+          <Badge variant="outline" className="border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300">
             {paper.branch}
           </Badge>
-          <div className="flex items-center gap-1 text-sm text-neutral-400">
+          <div className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
             <Calendar className="h-4 w-4" />
             {paper.month} {paper.year}
           </div>
-          <div className="flex items-center gap-1 text-sm text-neutral-400">
+          <div className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
             <Eye className="h-4 w-4" />
             {paper.viewCount} views
           </div>
@@ -232,46 +265,46 @@ export default function PaperViewPage() {
         transition={{ delay: 0.1 }}
       >
         <Tabs defaultValue="formatted" className="mb-12">
-          <TabsList className="mb-6 bg-white/5">
-            <TabsTrigger value="formatted" className="data-[state=active]:bg-indigo-600">
+          <TabsList className="mb-6 bg-neutral-100 dark:bg-white/5">
+            <TabsTrigger value="formatted" className="data-[state=active]:bg-white dark:data-[state=active]:bg-indigo-600 data-[state=active]:shadow-sm">
               Formatted Text
             </TabsTrigger>
-            <TabsTrigger value="original" className="data-[state=active]:bg-indigo-600">
+            <TabsTrigger value="original" className="data-[state=active]:bg-white dark:data-[state=active]:bg-indigo-600 data-[state=active]:shadow-sm">
               Original Image
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="formatted">
-            <Card className="border-white/10 bg-white/5">
+            <Card className="border-neutral-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm">
               <CardContent className="p-6 md:p-8">
                 {/* Part A */}
                 {paper.formattedText?.partA && paper.formattedText.partA.length > 0 && (
                   <div className="mb-8">
-                    <h2 className="mb-4 border-b border-white/10 pb-2 text-xl font-bold text-white">
+                    <h2 className="mb-4 border-b border-neutral-200 dark:border-white/10 pb-2 text-xl font-bold text-neutral-900 dark:text-white">
                       Part A - Short Answer Questions
                     </h2>
                     <div className="space-y-4">
                       {paper.formattedText.partA.map((q, idx) => (
                         <div
                           key={idx}
-                          className="rounded-lg border border-white/5 bg-white/5 p-4"
+                          className="rounded-xl border border-neutral-200 dark:border-white/5 bg-neutral-50 dark:bg-white/5 p-5"
                         >
                           <div className="mb-2 flex items-start justify-between">
-                            <span className="text-sm font-medium text-indigo-400">
+                            <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                               Q{q.questionNumber}
                             </span>
                             <Badge
                               variant="outline"
-                              className="border-amber-500/20 bg-amber-500/10 text-amber-400"
+                              className="border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400"
                             >
                               {q.marks} marks
                             </Badge>
                           </div>
-                          <p className="font-serif text-lg leading-relaxed text-neutral-200">
+                          <p className="font-serif text-lg leading-relaxed text-neutral-700 dark:text-neutral-200">
                             {q.question}
                           </p>
                           {q.topic && (
-                            <Badge className="mt-3 bg-indigo-500/10 text-indigo-400">
+                            <Badge className="mt-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400">
                               Topic: {q.topic}
                             </Badge>
                           )}
@@ -284,31 +317,31 @@ export default function PaperViewPage() {
                 {/* Part B */}
                 {paper.formattedText?.partB && paper.formattedText.partB.length > 0 && (
                   <div>
-                    <h2 className="mb-4 border-b border-white/10 pb-2 text-xl font-bold text-white">
+                    <h2 className="mb-4 border-b border-neutral-200 dark:border-white/10 pb-2 text-xl font-bold text-neutral-900 dark:text-white">
                       Part B - Long Answer Questions
                     </h2>
                     <div className="space-y-4">
                       {paper.formattedText.partB.map((q, idx) => (
                         <div
                           key={idx}
-                          className="rounded-lg border border-white/5 bg-white/5 p-4"
+                          className="rounded-xl border border-neutral-200 dark:border-white/5 bg-neutral-50 dark:bg-white/5 p-5"
                         >
                           <div className="mb-2 flex items-start justify-between">
-                            <span className="text-sm font-medium text-indigo-400">
+                            <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                               Q{q.questionNumber}
                             </span>
                             <Badge
                               variant="outline"
-                              className="border-amber-500/20 bg-amber-500/10 text-amber-400"
+                              className="border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400"
                             >
                               {q.marks} marks
                             </Badge>
                           </div>
-                          <p className="font-serif text-lg leading-relaxed text-neutral-200">
+                          <p className="font-serif text-lg leading-relaxed text-neutral-700 dark:text-neutral-200">
                             {q.question}
                           </p>
                           {q.topic && (
-                            <Badge className="mt-3 bg-indigo-500/10 text-indigo-400">
+                            <Badge className="mt-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400">
                               Topic: {q.topic}
                             </Badge>
                           )}
@@ -377,10 +410,10 @@ export default function PaperViewPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="mb-6 text-2xl font-bold text-white">Related Papers</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className="mb-6 text-2xl font-bold text-neutral-900 dark:text-white">Related Papers</h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {relatedPapers.map((p, idx) => (
-              <PaperCard key={p._id} paper={p} index={idx} />
+              <PaperCard key={p._id} paper={p} variant="minimal" />
             ))}
           </div>
         </motion.div>

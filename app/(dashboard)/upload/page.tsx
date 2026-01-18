@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { papersApi } from '@/lib/api'
-import { collegeOptions, branchOptions, semesterOptions, subjectOptions, examTypeOptions } from '@/lib/mock-data'
+import { getColleges, getBranchesForCollege, getSubjectsForBranchAndSemester, semesters, examTypes } from '@/lib/dropdown-data'
 import type { ExamType } from '@/types'
 import {
   Upload,
@@ -80,6 +80,16 @@ export default function UploadPage() {
   const [paperId, setPaperId] = useState<string | null>(null)
   const [formattedText, setFormattedText] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Cascading dropdown state
+  const [selectedCollege, setSelectedCollege] = useState('')
+  const [selectedBranch, setSelectedBranch] = useState('')
+  const [selectedSemester, setSelectedSemester] = useState('')
+
+  // Derived options
+  const collegeOptions = getColleges()
+  const branchOptions = selectedCollege ? getBranchesForCollege(selectedCollege) : []
+  const subjectOptions = (selectedBranch && selectedSemester) ? getSubjectsForBranchAndSemester(selectedBranch, selectedSemester) : []
   const [originalImage, setOriginalImage] = useState<string | null>(null)
 
   const {
@@ -190,11 +200,12 @@ export default function UploadPage() {
       // Auto-fill form with AI-detected values
       if (result.metadata?.college) {
         // Find matching option or use the value directly
-        const matchedCollege = collegeOptions.find(c =>
+        const matchedCollege = collegeOptions.find((c: string) =>
           c.toLowerCase().includes(result.metadata.college.toLowerCase()) ||
           result.metadata.college.toLowerCase().includes(c.toLowerCase())
         )
         setValue('college', matchedCollege || result.metadata.college)
+        setSelectedCollege(matchedCollege || result.metadata.college)
       }
       if (result.metadata?.subject) {
         const matchedSubject = subjectOptions.find(s =>
@@ -204,20 +215,22 @@ export default function UploadPage() {
         setValue('subject', matchedSubject || result.metadata.subject)
       }
       if (result.metadata?.semester) {
-        const matchedSemester = semesterOptions.find(s =>
+        const matchedSemester = semesters.find((s: string) =>
           s.toLowerCase().includes(result.metadata.semester.toLowerCase())
         )
         setValue('semester', matchedSemester || result.metadata.semester)
+        setSelectedSemester(matchedSemester || result.metadata.semester)
       }
       if (result.metadata?.branch) {
-        const matchedBranch = branchOptions.find(b =>
+        const matchedBranch = branchOptions.find((b: string) =>
           b.toLowerCase().includes(result.metadata.branch.toLowerCase()) ||
           result.metadata.branch.toLowerCase().includes(b.toLowerCase())
         )
         setValue('branch', matchedBranch || result.metadata.branch)
+        setSelectedBranch(matchedBranch || result.metadata.branch)
       }
       if (result.metadata?.examType) {
-        const matchedExamType = examTypeOptions.find(e =>
+        const matchedExamType = examTypes.find((e: { value: string; label: string }) =>
           e.value.toLowerCase() === result.metadata.examType.toLowerCase()
         )
         setValue('examType', matchedExamType?.value || result.metadata.examType)
@@ -513,11 +526,17 @@ export default function UploadPage() {
                         name="college"
                         control={control}
                         render={({ field }) => (
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={(val) => {
+                            field.onChange(val)
+                            setSelectedCollege(val)
+                            setSelectedBranch('')
+                            setValue('branch', '')
+                            setValue('subject', '')
+                          }} value={field.value}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select college" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-h-60">
                               {collegeOptions.map((college) => (
                                 <SelectItem key={college} value={college}>{college}</SelectItem>
                               ))}
@@ -541,9 +560,9 @@ export default function UploadPage() {
                         name="subject"
                         control={control}
                         render={({ field }) => (
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedBranch || !selectedSemester}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select subject" />
+                              <SelectValue placeholder={(!selectedBranch || !selectedSemester) ? "Select branch & semester first" : "Select subject"} />
                             </SelectTrigger>
                             <SelectContent>
                               {subjectOptions.map((subject) => (
@@ -553,6 +572,14 @@ export default function UploadPage() {
                           </Select>
                         )}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        {(!selectedBranch || !selectedSemester)
+                          ? "Select branch and semester to see available subjects"
+                          : subjectOptions.length === 0
+                            ? "No subjects available for selected branch/semester"
+                            : `${subjectOptions.length} subjects available`
+                        }
+                      </p>
                     </div>
 
                     {/* Semester & Branch */}
@@ -563,12 +590,16 @@ export default function UploadPage() {
                           name="semester"
                           control={control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={(val) => {
+                              field.onChange(val)
+                              setSelectedSemester(val)
+                              setValue('subject', '')
+                            }} value={field.value}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Semester" />
                               </SelectTrigger>
                               <SelectContent>
-                                {semesterOptions.map((sem) => (
+                                {semesters.map((sem) => (
                                   <SelectItem key={sem} value={sem}>{sem}</SelectItem>
                                 ))}
                               </SelectContent>
@@ -582,9 +613,17 @@ export default function UploadPage() {
                           name="branch"
                           control={control}
                           render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select
+                              onValueChange={(val) => {
+                                field.onChange(val)
+                                setSelectedBranch(val)
+                                setValue('subject', '')
+                              }}
+                              value={field.value}
+                              disabled={!selectedCollege}
+                            >
                               <SelectTrigger>
-                                <SelectValue placeholder="Branch" />
+                                <SelectValue placeholder={selectedCollege ? "Select branch" : "Select college first"} />
                               </SelectTrigger>
                               <SelectContent>
                                 {branchOptions.map((branch) => (
@@ -609,7 +648,7 @@ export default function UploadPage() {
                               <SelectValue placeholder="Select exam type" />
                             </SelectTrigger>
                             <SelectContent>
-                              {examTypeOptions.map((type) => (
+                              {examTypes.map((type) => (
                                 <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                               ))}
                             </SelectContent>

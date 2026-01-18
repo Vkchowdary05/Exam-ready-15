@@ -14,60 +14,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { 
-  Trophy, 
-  Medal, 
-  Award, 
-  TrendingUp, 
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Trophy,
+  Medal,
+  Award,
+  TrendingUp,
   Search,
   Upload,
   Heart,
   Crown,
-  Star,
-  Zap
+  Loader2
 } from 'lucide-react'
-import { currentUser } from '@/lib/mock-data'
-
-// Mock leaderboard data
-const generateLeaderboard = (count: number) => {
-  const names = ['Sarah Chen', 'James Wilson', 'Emily Parker', 'Michael Brown', 'Alex Johnson', 
-                 'Jessica Lee', 'David Kumar', 'Rachel Green', 'Tom Anderson', 'Lisa Wang']
-  const colleges = ['MIT', 'Stanford', 'Harvard', 'Berkeley', 'Georgia Tech']
-  
-  return Array.from({ length: count }, (_, i) => ({
-    rank: i + 1,
-    user: {
-      _id: `user-${i}`,
-      name: names[i % names.length] + ` ${i > 9 ? i : ''}`,
-      profilePicture: `/avatars/user-${i}.jpg`,
-      college: colleges[i % colleges.length]
-    },
-    totalUploads: Math.floor(Math.random() * 150) + 10,
-    totalLikes: Math.floor(Math.random() * 2000) + 100,
-    badgeCount: Math.floor(Math.random() * 8) + 1,
-    trend: Math.random() > 0.5 ? 'up' : 'down',
-    trendValue: Math.floor(Math.random() * 10) + 1
-  })).sort((a, b) => b.totalUploads - a.totalUploads)
-}
+import { usersApi } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
+import type { ILeaderboardEntry } from '@/types'
 
 export default function LeaderboardPage() {
+  const { user: currentUser } = useAuthStore()
   const [filter, setFilter] = useState<'global' | 'college' | 'subject'>('global')
   const [period, setPeriod] = useState<'all' | 'month' | 'week'>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [leaderboard, setLeaderboard] = useState(generateLeaderboard(50))
-  const [currentPage, setCurrentPage] = useState(1)
+  const [leaderboard, setLeaderboard] = useState<ILeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const itemsPerPage = 50
 
   useEffect(() => {
-    // Simulate API call
-    setLeaderboard(generateLeaderboard(50))
+    const fetchLeaderboard = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await usersApi.getLeaderboard(filter, period)
+        if (response.success && response.data) {
+          setLeaderboard(response.data)
+        } else {
+          setError(response.error || 'Failed to load leaderboard')
+        }
+      } catch (err) {
+        setError('Failed to load leaderboard')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchLeaderboard()
   }, [filter, period])
 
   const filteredLeaderboard = leaderboard.filter(entry =>
-    entry.user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    entry.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    entry.user?.college?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const currentUserRank = leaderboard.findIndex(entry => entry.user.name === currentUser.name) + 1
+  const currentUserRank = currentUser ? leaderboard.findIndex(entry => entry.user?._id === currentUser._id) + 1 : 0
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Crown className="w-6 h-6 text-yellow-500" />
@@ -162,7 +160,7 @@ export default function LeaderboardPage() {
       {/* Top 3 Podium */}
       <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
         {/* 2nd Place */}
-        {leaderboard[1] && (
+        {leaderboard[1] && leaderboard[1].user && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,14 +169,14 @@ export default function LeaderboardPage() {
           >
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-3xl font-bold text-white">
-                {leaderboard[1].user.name.charAt(0)}
+                {leaderboard[1].user?.name?.charAt(0) || '?'}
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center border-4 border-background">
                 <span className="text-xs font-bold text-white">2</span>
               </div>
             </div>
-            <p className="font-semibold text-center text-sm mb-1">{leaderboard[1].user.name}</p>
-            <p className="text-xs text-muted-foreground mb-2">{leaderboard[1].user.college}</p>
+            <p className="font-semibold text-center text-sm mb-1">{leaderboard[1].user?.name || 'Unknown'}</p>
+            <p className="text-xs text-muted-foreground mb-2">{leaderboard[1].user?.college || ''}</p>
             <Badge variant="secondary" className="gap-1">
               <Upload className="w-3 h-3" />
               {leaderboard[1].totalUploads}
@@ -187,7 +185,7 @@ export default function LeaderboardPage() {
         )}
 
         {/* 1st Place */}
-        {leaderboard[0] && (
+        {leaderboard[0] && leaderboard[0].user && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -196,14 +194,14 @@ export default function LeaderboardPage() {
             <Crown className="w-8 h-8 text-yellow-500 mb-2 animate-bounce" />
             <div className="relative mb-4">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-4xl font-bold text-white border-4 border-yellow-300">
-                {leaderboard[0].user.name.charAt(0)}
+                {leaderboard[0].user?.name?.charAt(0) || '?'}
               </div>
               <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center border-4 border-background">
                 <Trophy className="w-5 h-5 text-white" />
               </div>
             </div>
-            <p className="font-bold text-center mb-1">{leaderboard[0].user.name}</p>
-            <p className="text-xs text-muted-foreground mb-2">{leaderboard[0].user.college}</p>
+            <p className="font-bold text-center mb-1">{leaderboard[0].user?.name || 'Unknown'}</p>
+            <p className="text-xs text-muted-foreground mb-2">{leaderboard[0].user?.college || ''}</p>
             <Badge className="bg-yellow-500 hover:bg-yellow-600 gap-1">
               <Upload className="w-3 h-3" />
               {leaderboard[0].totalUploads}
@@ -212,7 +210,7 @@ export default function LeaderboardPage() {
         )}
 
         {/* 3rd Place */}
-        {leaderboard[2] && (
+        {leaderboard[2] && leaderboard[2].user && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -221,14 +219,14 @@ export default function LeaderboardPage() {
           >
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center text-3xl font-bold text-white">
-                {leaderboard[2].user.name.charAt(0)}
+                {leaderboard[2].user?.name?.charAt(0) || '?'}
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center border-4 border-background">
                 <span className="text-xs font-bold text-white">3</span>
               </div>
             </div>
-            <p className="font-semibold text-center text-sm mb-1">{leaderboard[2].user.name}</p>
-            <p className="text-xs text-muted-foreground mb-2">{leaderboard[2].user.college}</p>
+            <p className="font-semibold text-center text-sm mb-1">{leaderboard[2].user?.name || 'Unknown'}</p>
+            <p className="text-xs text-muted-foreground mb-2">{leaderboard[2].user?.college || ''}</p>
             <Badge variant="secondary" className="gap-1">
               <Upload className="w-3 h-3" />
               {leaderboard[2].totalUploads}
@@ -258,9 +256,8 @@ export default function LeaderboardPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.02 }}
-                className={`grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/30 transition-colors ${
-                  entry.rank <= 3 ? getRankColor(entry.rank) + ' border-l-4' : ''
-                } ${entry.user.name === currentUser.name ? 'bg-primary/5' : ''}`}
+                className={`grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/30 transition-colors ${entry.rank <= 3 ? getRankColor(entry.rank) + ' border-l-4' : ''
+                  } ${currentUser && entry.user?._id === currentUser._id ? 'bg-primary/5' : ''}`}
               >
                 {/* Rank */}
                 <div className="col-span-1 flex items-center gap-2">
@@ -273,11 +270,11 @@ export default function LeaderboardPage() {
                 {/* User */}
                 <div className="col-span-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                    {entry.user.name.charAt(0)}
+                    {entry.user?.name?.charAt(0) || '?'}
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">{entry.user.name}</p>
-                    <p className="text-xs text-muted-foreground">{entry.user.college}</p>
+                    <p className="font-semibold text-foreground">{entry.user?.name || 'Unknown'}</p>
+                    <p className="text-xs text-muted-foreground">{entry.user?.college || ''}</p>
                   </div>
                 </div>
 
@@ -301,23 +298,13 @@ export default function LeaderboardPage() {
                 <div className="col-span-2 text-center">
                   <Badge variant="secondary" className="gap-1">
                     <Award className="w-3 h-3" />
-                    {entry.badgeCount}
+                    {entry.badges?.length || 0}
                   </Badge>
                 </div>
 
-                {/* Trend */}
+                {/* Credits Placeholder */}
                 <div className="col-span-1 flex justify-center">
-                  {entry.trend === 'up' ? (
-                    <div className="flex items-center gap-1 text-green-600">
-                      <TrendingUp className="w-4 h-4" />
-                      <span className="text-xs font-medium">+{entry.trendValue}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-red-600">
-                      <TrendingUp className="w-4 h-4 rotate-180" />
-                      <span className="text-xs font-medium">-{entry.trendValue}</span>
-                    </div>
-                  )}
+                  <span className="text-sm text-muted-foreground">-</span>
                 </div>
               </motion.div>
             ))}

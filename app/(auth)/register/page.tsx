@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth-store'
-import { collegeOptions, branchOptions, semesterOptions } from '@/lib/mock-data'
+import { getColleges, getAllBranches, semesters } from '@/lib/dropdown-data'
 import {
   Eye,
   EyeOff,
@@ -113,8 +113,8 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
           <div
             key={item.key}
             className={`flex items-center gap-1.5 ${checks[item.key as keyof typeof checks]
-                ? 'text-green-600'
-                : 'text-muted-foreground'
+              ? 'text-green-600'
+              : 'text-muted-foreground'
               }`}
           >
             {checks[item.key as keyof typeof checks] ? (
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                     <SelectValue placeholder="Select your college" />
                   </SelectTrigger>
                   <SelectContent>
-                    {collegeOptions.map((college) => (
+                    {getColleges().map((college) => (
                       <SelectItem key={college} value={college}>
                         {college}
                       </SelectItem>
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                       <SelectValue placeholder="Branch" />
                     </SelectTrigger>
                     <SelectContent>
-                      {branchOptions.map((branch) => (
+                      {getAllBranches().map((branch) => (
                         <SelectItem key={branch} value={branch}>
                           {branch}
                         </SelectItem>
@@ -323,7 +323,7 @@ export default function RegisterPage() {
                       <SelectValue placeholder="Semester" />
                     </SelectTrigger>
                     <SelectContent>
-                      {semesterOptions.map((sem) => (
+                      {semesters.map((sem) => (
                         <SelectItem key={sem} value={sem}>
                           {sem}
                         </SelectItem>

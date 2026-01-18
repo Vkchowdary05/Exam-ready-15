@@ -24,11 +24,11 @@ export const generalLimiter = rateLimit({
 });
 
 /**
- * Auth rate limiter - 5 requests per 15 minutes
+ * Auth rate limiter - 50 requests per 15 minutes (increased for development)
  */
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5,
+    max: 50, // Increased from 5 for development
     message: 'Too many authentication attempts, please try again later',
     standardHeaders: true,
     legacyHeaders: false,

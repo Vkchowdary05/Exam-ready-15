@@ -24,27 +24,27 @@ import {
   Sparkles,
   Home,
   ChevronRight,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 
-// Mock full topics data
-const mockFullTopics = {
-  partA: Array.from({ length: 40 }, (_, i) => ({
-    name: `Topic ${i + 1} - Part A`,
-    count: Math.floor(Math.random() * 45) + 5,
-    studied: false
-  })).sort((a, b) => b.count - a.count),
-  partB: Array.from({ length: 25 }, (_, i) => ({
-    name: `Topic ${i + 1} - Part B`,
-    count: Math.floor(Math.random() * 22) + 5,
-    studied: false
-  })).sort((a, b) => b.count - a.count)
+import { topicsApi } from '@/lib/api'
+import type { ITopic } from '@/types'
+
+// Type for the topics state
+type TopicsState = {
+  partA: (ITopic & { studied?: boolean })[];
+  partB: (ITopic & { studied?: boolean })[];
 }
 
 export default function TopicsViewPage() {
   const searchParams = useSearchParams()
-  const [topics, setTopics] = useState(mockFullTopics)
+  // Initialize with empty arrays
+  const [topics, setTopics] = useState<TopicsState>({ partA: [], partB: [] })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [sortBy, setSortBy] = useState<'count' | 'alpha'>('count')
   const [filterLimit, setFilterLimit] = useState<'all' | '10' | '20'>('all')
   const [copiedA, setCopiedA] = useState(false)
@@ -60,6 +60,41 @@ export default function TopicsViewPage() {
     examType: searchParams.get('examType') || '',
   }
 
+  // Fetch topics on mount
+  useEffect(() => {
+    const fetchTopics = async () => {
+      setLoading(true)
+      try {
+        const response = await topicsApi.getTop({
+          college: filters.college,
+          subject: filters.subject,
+          semester: filters.semester,
+          examType: filters.examType
+        })
+
+        if (response.success && response.data) {
+          // Add 'studied' property to topics
+          setTopics({
+            partA: response.data.partA.topics.map(t => ({ ...t, studied: false })),
+            partB: response.data.partB.topics.map(t => ({ ...t, studied: false }))
+          })
+        } else {
+          setError(response.error || 'Failed to fetch topics')
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (filters.college && filters.subject && filters.semester && filters.examType) {
+      fetchTopics()
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
   const examTypeLimits = {
     semester: { partA: 40, partB: 25 },
     midterm1: { partA: 25, partB: 10 },
@@ -71,7 +106,7 @@ export default function TopicsViewPage() {
   const toggleStudied = (part: 'partA' | 'partB', index: number) => {
     setTopics(prev => ({
       ...prev,
-      [part]: prev[part].map((topic, i) => 
+      [part]: prev[part].map((topic, i) =>
         i === index ? { ...topic, studied: !topic.studied } : topic
       )
     }))
@@ -79,7 +114,7 @@ export default function TopicsViewPage() {
 
   const getFilteredTopics = (topicsList: typeof topics.partA) => {
     let filtered = [...topicsList]
-    
+
     if (sortBy === 'alpha') {
       filtered.sort((a, b) => a.name.localeCompare(b.name))
     } else {
@@ -103,7 +138,7 @@ export default function TopicsViewPage() {
   const generatePrompt = (part: 'A' | 'B') => {
     const topicsList = part === 'A' ? topics.partA : topics.partB
     const topicNames = topicsList.map(t => t.name)
-    
+
     let prompt: any = {
       instruction: '',
       format: '',
@@ -148,7 +183,7 @@ export default function TopicsViewPage() {
       'Part B Topics:',
       ...topics.partB.map((t, i) => `${i + 1}. ${t.name} (${t.count} times)`)
     ].join('\n')
-    
+
     await navigator.clipboard.writeText(allTopics)
     setCopiedAll(true)
     setTimeout(() => setCopiedAll(false), 2000)
@@ -156,7 +191,7 @@ export default function TopicsViewPage() {
 
   const exportData = (format: 'pdf' | 'csv' | 'json') => {
     setIsGenerating(true)
-    
+
     setTimeout(() => {
       if (format === 'json') {
         const data = {
@@ -184,7 +219,7 @@ export default function TopicsViewPage() {
         a.download = `topics-${filters.subject}-${new Date().toISOString().split('T')[0]}.csv`
         a.click()
       }
-      
+
       setIsGenerating(false)
     }, 1000)
   }
@@ -193,6 +228,24 @@ export default function TopicsViewPage() {
   const filteredPartB = getFilteredTopics(topics.partB)
   const studiedCountA = topics.partA.filter(t => t.studied).length
   const studiedCountB = topics.partB.filter(t => t.studied).length
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center flex-col gap-4">
+        <AlertCircle className="w-12 h-12 text-destructive" />
+        <p className="text-lg font-medium text-destructive">{error}</p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -219,8 +272,8 @@ export default function TopicsViewPage() {
           <Badge variant="secondary">Sem {filters.semester}</Badge>
           <Badge variant="secondary">{filters.branch}</Badge>
           <Badge variant="secondary">
-            {filters.examType === 'semester' ? 'Semester Exam' : 
-             filters.examType === 'midterm1' ? 'Midterm 1' : 'Midterm 2'}
+            {filters.examType === 'semester' ? 'Semester Exam' :
+              filters.examType === 'midterm1' ? 'Midterm 1' : 'Midterm 2'}
           </Badge>
         </div>
       </div>
@@ -242,7 +295,7 @@ export default function TopicsViewPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium">Show:</label>
                 <Select value={filterLimit} onValueChange={(v: any) => setFilterLimit(v)}>
@@ -315,9 +368,8 @@ export default function TopicsViewPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
-                    className={`flex items-center gap-4 p-3 rounded-lg border transition-all ${
-                      topic.studied ? 'bg-muted/50 border-border' : 'bg-card border-border hover:border-primary/30'
-                    }`}
+                    className={`flex items-center gap-4 p-3 rounded-lg border transition-all ${topic.studied ? 'bg-muted/50 border-border' : 'bg-card border-border hover:border-primary/30'
+                      }`}
                   >
                     <Checkbox
                       checked={topic.studied}
@@ -369,9 +421,8 @@ export default function TopicsViewPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02 }}
-                    className={`flex items-center gap-4 p-3 rounded-lg border transition-all ${
-                      topic.studied ? 'bg-muted/50 border-border' : 'bg-card border-border hover:border-primary/30'
-                    }`}
+                    className={`flex items-center gap-4 p-3 rounded-lg border transition-all ${topic.studied ? 'bg-muted/50 border-border' : 'bg-card border-border hover:border-primary/30'
+                      }`}
                   >
                     <Checkbox
                       checked={topic.studied}

@@ -41,6 +41,8 @@ export interface IUserStats {
   totalViews: number
   badgeCount: number
   rank: number
+  credits: number
+  badges: IBadge[]
 }
 
 // ============================================

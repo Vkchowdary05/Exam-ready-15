@@ -279,3 +279,91 @@
 .skip-link:focus {
   top: 0;
 }
+
+/* ============================================
+   THEME VARIANTS
+   ============================================ */
+
+/* Simple Theme - Clean, minimal, calm */
+.theme-simple {
+  --background: #FFFFFF;
+  --foreground: #111827;
+  --card: #F9FAFB;
+  --card-foreground: #111827;
+  --popover: #F9FAFB;
+  --popover-foreground: #111827;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F9FAFB;
+  --secondary-foreground: #6B7280;
+  --muted: #F9FAFB;
+  --muted-foreground: #6B7280;
+  --accent: #10B981;
+  --accent-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #2563EB;
+}
+
+/* Modern Theme - Soft, elegant, premium SaaS (default) */
+.theme-modern {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #6366F1;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #64748B;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #22D3EE;
+  --accent-foreground: #0F172A;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #6366F1;
+}
+
+/* Nerdy Theme - Developer-friendly, academic, focused (dark) */
+.theme-nerdy {
+  --background: #0F172A;
+  --foreground: #E5E7EB;
+  --card: #020617;
+  --card-foreground: #E5E7EB;
+  --popover: #020617;
+  --popover-foreground: #E5E7EB;
+  --primary: #38BDF8;
+  --primary-foreground: #0F172A;
+  --secondary: #1E293B;
+  --secondary-foreground: #A5B4FC;
+  --muted: #1E293B;
+  --muted-foreground: #9CA3AF;
+  --accent: #FACC15;
+  --accent-foreground: #0F172A;
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #38BDF8;
+}
+
+/* Tech Theme - High-contrast, futuristic, AI-powered (dark) */
+.theme-tech {
+  --background: #020617;
+  --foreground: #ECFEFF;
+  --card: #020617;
+  --card-foreground: #ECFEFF;
+  --popover: #0F172A;
+  --popover-foreground: #ECFEFF;
+  --primary: #22C55E;
+  --primary-foreground: #020617;
+  --secondary: #0F172A;
+  --secondary-foreground: #14B8A6;
+  --muted: #0F172A;
+  --muted-foreground: #94A3B8;
+  --accent: #A855F7;
+  --accent-foreground: #ECFEFF;
+  --border: #0F172A;
+  --input: #0F172A;
+  --ring: #22C55E;
+}
