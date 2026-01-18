@@ -49,6 +49,8 @@ const sortOptions = [
 
 const Loading = () => null;
 
+export const dynamic = 'force-dynamic'
+
 export default function SearchPapersPage() {
   const searchParams = useSearchParams();
   const [papers, setPapers] = useState<IPaper[]>([]);

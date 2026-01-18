@@ -32,6 +32,8 @@ import Link from 'next/link'
 import { topicsApi } from '@/lib/api'
 import type { ITopic } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 // Type for the topics state
 type TopicsState = {
   partA: (ITopic & { studied?: boolean })[];

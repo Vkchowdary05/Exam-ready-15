@@ -39,6 +39,8 @@ const examTypeOptions = [
   { value: 'midterm2', label: 'Midterm 2' },
 ]
 
+export const dynamic = 'force-dynamic'
+
 export default function SearchTopicsPage() {
   const router = useRouter()
   const [isSearching, setIsSearching] = useState(false)
