@@ -71,14 +71,22 @@ export function createApp(): Express {
         next();
     });
 
-    // Health check endpoint
+    // Health check endpoint (for keep-alive services like UptimeRobot)
     app.get('/health', (req, res) => {
+        const uptime = process.uptime();
+        const memoryUsage = process.memoryUsage();
         res.json({
             success: true,
             data: {
                 status: 'healthy',
                 timestamp: new Date().toISOString(),
                 environment: env.NODE_ENV,
+                uptime: Math.floor(uptime),
+                version: '1.0.0',
+                memory: {
+                    heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB',
+                    heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
+                },
             },
         });
     });
