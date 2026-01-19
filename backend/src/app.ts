@@ -33,16 +33,26 @@ export function createApp(): Express {
         env.FRONTEND_URL,
         'http://localhost:3000',
         'http://localhost:3001',
-        'https://exam-ready-15-jvzs-hrk28xuy1-venakata-kartheeks-projects.vercel.app',
     ];
+
+    // Check if origin is a Vercel deployment for this project
+    const isVercelOrigin = (origin: string): boolean => {
+        if (!origin) return false;
+        // Allow all Vercel preview and production deployments
+        return origin.includes('.vercel.app') &&
+            (origin.includes('exam-ready') ||
+                origin.includes('venakata-kartheek') ||
+                origin.includes('vkchowdary'));
+    };
 
     app.use(cors({
         origin: (origin, callback) => {
             // Allow requests with no origin (like mobile apps or curl)
             if (!origin) return callback(null, true);
-            if (allowedOrigins.includes(origin)) {
+            if (allowedOrigins.includes(origin) || isVercelOrigin(origin)) {
                 return callback(null, true);
             }
+            logger.warn(`CORS blocked origin: ${origin}`);
             return callback(new Error('Not allowed by CORS'));
         },
         credentials: true,

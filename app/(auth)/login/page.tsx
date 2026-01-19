@@ -126,6 +126,14 @@ export default function LoginPage() {
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Submit Button */}
