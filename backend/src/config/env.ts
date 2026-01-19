@@ -126,7 +126,8 @@ export const env: EnvConfig = {
     OCR_SERVICE_URL: getEnvVar('OCR_SERVICE_URL', 'http://localhost:5001'),
 
     // Development flags
-    USE_MOCK_OCR: getEnvVarBool('USE_MOCK_OCR', false),
+    // Development flags
+    USE_MOCK_OCR: getEnvVarBool('USE_MOCK_OCR', true), // Default to Mock due to PaddleOCR instability
     USE_MOCK_AI: getEnvVarBool('USE_MOCK_AI', false),
     SKIP_EMAIL_VERIFICATION: getEnvVarBool('SKIP_EMAIL_VERIFICATION', false),
 };
