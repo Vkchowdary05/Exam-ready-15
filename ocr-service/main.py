@@ -26,14 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize PaddleOCR (English language, disable GPU for compatibility)
+# Initialize PaddleOCR (English language)
 # use_angle_cls=True enables text direction detection
 # lang='en' for English
+# device='cpu' for CPU-only mode (no GPU)
 ocr = PaddleOCR(
     use_angle_cls=True,
     lang='en',
-    use_gpu=False,
-    show_log=False
+    device='cpu'
 )
 
 @app.get("/")
