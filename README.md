@@ -1,97 +1,66 @@
 # 📚 Exam Ready
 
-**AI-Powered Exam Paper Repository for Engineering Students**
+**AI-Powered Exam Paper Sharing Platform for Students**
 
-> A full-stack web application that helps engineering students discover, share, and analyze exam papers using OCR and AI technology.
+A production-ready full-stack web application that enables students to upload, share, and discover past examination papers with intelligent OCR text extraction, AI-powered topic analysis, and gamification features.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
-![React](https://img.shields.io/badge/React-18-blue?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![MongoDB](https://img.shields.io/badge/MongoDB-8-green?logo=mongodb)
-![Express](https://img.shields.io/badge/Express-4.18-lightgrey?logo=express)
-![Python](https://img.shields.io/badge/Python-3.10-yellow?logo=python)
-
----
-
-## 📋 Table of Contents
-
-- [Problem Statement](#-problem-statement)
-- [Solution Overview](#-solution-overview)
-- [Key Features](#-key-features)
-- [Tech Stack](#-tech-stack)
-- [System Architecture](#-system-architecture)
-- [How the Web App Works](#-how-the-web-app-works)
-- [OCR Workflow](#-ocr-workflow)
-- [Deployment Architecture](#-deployment-architecture)
-- [Environment Variables](#-environment-variables)
-- [Local Setup Instructions](#-local-setup-instructions)
-- [Production Deployment](#-production-deployment)
-- [API Overview](#-api-overview)
-- [Screenshots](#-screenshots)
-- [Future Enhancements](#-future-enhancements)
-- [Limitations](#-limitations)
-- [Conclusion](#-conclusion)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js)](https://nextjs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb)](https://mongodb.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 🎯 Problem Statement
+## 🎯 Project Overview
 
-Engineering students face significant challenges when preparing for exams:
+**Exam Ready** solves a critical problem faced by engineering students: **fragmented access to past exam papers**. Students often struggle to find relevant question papers from their specific college, subject, and exam type.
 
-1. **Scattered Resources** - Exam papers are spread across WhatsApp groups, Google Drive links, and personal collections
-2. **Poor Organization** - Papers are often mislabeled or missing metadata (subject, semester, year)
-3. **Duplicate Content** - Same papers shared multiple times without proper categorization
-4. **No Topic Analysis** - Students cannot identify important/frequently asked topics
-5. **Time-Consuming Search** - Finding relevant papers requires extensive searching
+This platform provides:
+- **Centralized repository** of past examination papers
+- **Intelligent OCR** that extracts and structures questions automatically
+- **AI-powered topic frequency analysis** to identify high-priority topics
+- **Social features** with likes, bookmarks, and leaderboards
+- **Gamification** to incentivize quality contributions
 
 ---
 
-## 💡 Solution Overview
+## 💡 Why This Project Matters
 
-**Exam Ready** is an intelligent exam paper repository that:
-
-- Provides a **centralized platform** for uploading and discovering exam papers
-- Uses **OCR (Optical Character Recognition)** to automatically extract text from paper images
-- Employs **AI-powered metadata extraction** to auto-fill paper details (college, subject, semester, etc.)
-- Offers **topic frequency analysis** to identify important topics across papers
-- Implements **gamification** (credits, badges, leaderboard) to encourage contributions
-- Features **advanced search and filtering** for quick paper discovery
+| Problem | Solution |
+|---------|----------|
+| Past papers scattered across WhatsApp groups | Centralized, searchable database |
+| Manual topic extraction is time-consuming | AI automatically identifies topics |
+| No way to know which topics are important | Topic frequency analysis with visual heat mapping |
+| Low-quality or mislabeled uploads | Community moderation + admin verification |
+| No incentive to share resources | Gamification with credits, badges, and leaderboards |
 
 ---
 
 ## ✨ Key Features
 
-### 📤 Smart Paper Upload
-- Upload exam paper images (JPG, PNG, WEBP)
-- Automatic text extraction using PaddleOCR
-- AI-powered auto-fill of metadata fields
-- Review and edit before submission
+### Core Functionality
+- **Smart Paper Upload** — Drag-and-drop with automatic OCR text extraction
+- **Advanced Search** — Filter by college, subject, semester, branch, year, exam type
+- **Topic Frequency Analysis** — Identify most-asked topics across papers
+- **AI Prompt Generator** — Generate study prompts for high-frequency topics
 
-### 🔍 Advanced Search & Discovery
-- Multi-filter search (college, subject, semester, branch, exam type, year)
-- Text-based search across all papers
-- Sort by recent, popularity, or relevance
+### User Experience
+- **4 Theme System** — Simple, Modern, Tech, and Nerdy themes
+- **Responsive Design** — Mobile-first, works on all devices
+- **3D Animations** — Three.js powered landing page
+- **Smooth Transitions** — Framer Motion UI animations
 
-### 📊 Topic Frequency Analysis
-- View most frequently asked topics per subject
-- Filter by exam type (Semester/Midterm)
-- Identify high-priority topics for exam preparation
+### Social & Gamification
+- **Like & Bookmark** papers for quick access
+- **Credit System** — Earn credits for uploads
+- **8 Badge Types** — Unlock achievements as you contribute
+- **Leaderboards** — Global, college-wise, and subject-wise rankings
 
-### 🎮 Gamification System
-- Earn **credits** for uploading papers
-- Unlock **badges** for achievements
-- Compete on **leaderboards** (global, college, subject)
-
-### 👤 User Features
-- Secure authentication (JWT-based)
-- Personalized dashboard with stats
-- Like and bookmark papers
-- Profile customization
-
-### 🛡️ Admin Panel
-- Paper verification and moderation
-- User management
-- Flagged content review
+### Admin & Moderation
+- **Admin Dashboard** — Platform statistics and health monitoring
+- **Content Moderation** — Review flagged papers
+- **User Management** — Ban/unban users, manage roles
 
 ---
 
@@ -101,425 +70,315 @@ Engineering students face significant challenges when preparing for exams:
 | Technology | Purpose |
 |------------|---------|
 | **Next.js 14** | React framework with App Router |
-| **React 18** | UI component library |
 | **TypeScript** | Type-safe JavaScript |
-| **Tailwind CSS 4** | Utility-first styling |
-| **Zustand** | State management |
-| **React Hook Form** | Form handling |
-| **Framer Motion** | Animations |
-| **Radix UI** | Accessible UI components |
-| **Recharts** | Data visualization |
+| **Tailwind CSS** | Utility-first styling |
+| **Zustand** | Lightweight state management |
+| **React Hook Form + Zod** | Form handling with validation |
+| **Three.js** | 3D animations on landing page |
+| **Framer Motion** | UI animations and transitions |
+| **Radix UI** | Accessible component primitives |
 
 ### Backend
 | Technology | Purpose |
 |------------|---------|
-| **Node.js 18+** | JavaScript runtime |
-| **Express.js** | Web framework |
-| **TypeScript** | Type-safe development |
-| **MongoDB** | NoSQL database |
-| **Mongoose** | ODM for MongoDB |
-| **JWT** | Authentication tokens |
-| **Bcrypt.js** | Password hashing |
-| **Multer** | File upload handling |
-| **Cloudinary** | Cloud image storage |
-| **Winston** | Logging |
-| **Zod** | Schema validation |
+| **Node.js + Express** | REST API server |
+| **TypeScript** | Type-safe backend |
+| **MongoDB + Mongoose** | NoSQL database with ODM |
+| **JWT** | Stateless authentication |
+| **Tesseract.js** | Optical Character Recognition |
+| **Groq API (Llama 3.3)** | AI-powered metadata extraction |
+| **Cloudinary** | Cloud image storage and CDN |
+| **Winston** | Structured logging |
 
-### OCR Service
+### DevOps & Security
 | Technology | Purpose |
 |------------|---------|
-| **Python 3.10** | Programming language |
-| **FastAPI** | Web framework |
-| **PaddleOCR** | Text extraction from images |
-| **Uvicorn** | ASGI server |
-
-### Infrastructure
-| Service | Purpose |
-|---------|---------|
-| **Vercel** | Frontend hosting |
-| **Render / Railway** | Backend & OCR service hosting |
-| **MongoDB Atlas** | Cloud database |
-| **Cloudinary** | Image CDN & storage |
+| **Helmet** | HTTP security headers |
+| **express-rate-limit** | API rate limiting |
+| **bcryptjs** | Password hashing (10 rounds) |
+| **express-mongo-sanitize** | NoSQL injection prevention |
+| **Zod** | Runtime input validation |
 
 ---
 
 ## 🏗️ System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              FRONTEND                                    │
-│                         (Vercel - Next.js)                              │
-│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────────────────┐ │
-│  │  Login/   │  │ Dashboard │  │  Upload   │  │  Search & Discovery   │ │
-│  │ Register  │  │  & Stats  │  │  Papers   │  │  Papers & Topics      │ │
-│  └───────────┘  └───────────┘  └───────────┘  └───────────────────────┘ │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │ HTTPS (REST API)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              BACKEND                                     │
-│                      (Render/Railway - Node.js)                         │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────────┐ │
-│  │    Auth    │  │   Papers   │  │   Topics   │  │  Users & Gamify    │ │
-│  │ Controller │  │ Controller │  │ Controller │  │    Controller      │ │
-│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘  └─────────┬──────────┘ │
-│         │               │               │                   │           │
-│  ┌──────▼───────────────▼───────────────▼───────────────────▼─────────┐ │
-│  │                     MongoDB (Atlas)                                 │ │
-│  │   Users │ Papers │ Topics │ Notifications                          │ │
-│  └─────────────────────────────────────────────────────────────────────┘ │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │ HTTP (Internal)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                            OCR SERVICE                                   │
-│                    (Render/Railway - Python)                            │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                        PaddleOCR                                   │  │
-│  │          Text Extraction from Exam Paper Images                    │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT (Browser)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │  Next.js    │  │  Zustand    │  │  Three.js   │             │
+│  │  App Router │  │  Store      │  │  3D Scene   │             │
+│  └──────┬──────┘  └──────┬──────┘  └─────────────┘             │
+└─────────┼────────────────┼──────────────────────────────────────┘
+          │                │
+          ▼                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     REST API (Express.js)                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │  Auth    │  │  Papers  │  │  Topics  │  │  Admin   │        │
+│  │  Routes  │  │  Routes  │  │  Routes  │  │  Routes  │        │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
+│       │             │             │             │               │
+│  ┌────▼─────────────▼─────────────▼─────────────▼────┐         │
+│  │              Middleware Layer                      │         │
+│  │  [Auth] [Rate Limit] [Validation] [Error Handler] │         │
+│  └────────────────────────┬──────────────────────────┘         │
+└───────────────────────────┼─────────────────────────────────────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          ▼                 ▼                 ▼
+   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+   │  MongoDB    │   │  Cloudinary │   │  Groq API   │
+   │  Atlas      │   │  (Images)   │   │  (AI/LLM)   │
+   └─────────────┘   └─────────────┘   └─────────────┘
 ```
 
 ---
 
-## 📱 How the Web App Works
+## 🔄 How the Web App Works
 
-### User Flow
-
-```mermaid
-graph TD
-    A[User Visits App] --> B{Logged In?}
-    B -->|No| C[Login/Register]
-    C --> D[Dashboard]
-    B -->|Yes| D
-    
-    D --> E[Search Papers]
-    D --> F[Upload Paper]
-    D --> G[View Topics]
-    D --> H[Leaderboard]
-    D --> I[Profile]
-    
-    E --> J[Filter & Browse]
-    J --> K[View Paper Details]
-    K --> L[Like/Bookmark]
-    
-    F --> M[Upload Image]
-    M --> N[OCR Processing]
-    N --> O[AI Auto-Fill]
-    O --> P[Review & Submit]
-    P --> Q[Earn Credits]
+### 1. User Registration & Authentication
+```
+User → Register → Email/Password + College Info → JWT Token → Access Platform
 ```
 
-### Step-by-Step User Journey
-
-1. **Registration/Login**
-   - User creates account with email, password, college, branch, semester
-   - JWT token issued for authenticated sessions
-
-2. **Dashboard**
-   - View personal stats (uploads, likes received, credits, badges)
-   - Quick access to recent papers and platform statistics
-
-3. **Paper Upload**
-   - Select exam paper image (JPG, PNG, WEBP)
-   - OCR extracts text from image
-   - AI suggests metadata (college, subject, semester, etc.)
-   - User reviews and confirms details
-   - Paper saved to database, user earns credits
-
-4. **Search & Discovery**
-   - Apply filters (college, subject, semester, branch, exam type, year)
-   - Browse papers with sorting options
-   - View paper details, questions, and topics
-   - Like and bookmark papers for later
-
-5. **Topic Analysis**
-   - Select subject and exam type
-   - View topic frequency chart
-   - Identify high-priority topics for revision
-
-6. **Gamification**
-   - Earn credits for uploading papers
-   - Unlock badges for achievements
-   - Compete on leaderboards
-
----
-
-## 🔍 OCR Workflow
-
-The OCR pipeline processes uploaded exam paper images:
-
+### 2. Paper Upload Flow
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  User Uploads   │────▶│  Node.js API    │────▶│  Python OCR     │
-│  Paper Image    │     │  Receives File  │     │  Service        │
-└─────────────────┘     └─────────────────┘     └────────┬────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  User Reviews   │◀────│  AI Extracts    │◀────│  PaddleOCR      │
-│  & Confirms     │     │  Metadata       │     │  Text Extraction│
-└────────┬────────┘     └─────────────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│  Paper Stored   │────▶│  Topics         │
-│  in MongoDB     │     │  Aggregated     │
-└─────────────────┘     └─────────────────┘
+User uploads image → Tesseract.js OCR → Extract text → 
+Groq AI analyzes → Extract questions/topics → Store in MongoDB → 
+User confirms metadata → Paper published
 ```
 
-### OCR Processing Steps
-
-1. **Image Upload**: User uploads paper image via frontend
-2. **File Transfer**: Node.js backend receives file via Multer
-3. **OCR Request**: Backend sends image to Python OCR service
-4. **Text Extraction**: PaddleOCR extracts text with confidence score
-5. **AI Analysis**: Grok-3/Groq AI extracts structured metadata
-6. **Auto-Fill**: Frontend displays suggested metadata
-7. **User Confirmation**: User reviews and confirms details
-8. **Storage**: Paper and extracted topics saved to MongoDB
-
----
-
-## 🚀 Deployment Architecture
-
-### Recommended Deployment Setup
-
-| Component | Platform | URL Pattern |
-|-----------|----------|-------------|
-| Frontend | Vercel | `exam-ready.vercel.app` |
-| Backend API | Render | `exam-ready-api.onrender.com` |
-| OCR Service | Render | `exam-ready-ocr.onrender.com` |
-| Database | MongoDB Atlas | `cluster.mongodb.net` |
-| Images | Cloudinary | `res.cloudinary.com` |
-
-### Deployment Flow
-
+### 3. Search & Discovery
 ```
-GitHub Repository
-       │
-       ├──────────────────┐
-       │                  │
-       ▼                  ▼
-   ┌────────┐        ┌────────┐
-   │ Vercel │        │ Render │
-   │Frontend│        │Backend │
-   └────────┘        │ + OCR  │
-                     └────────┘
+User applies filters → API query with pagination → 
+MongoDB aggregation → Return matching papers → 
+Display with like/bookmark actions
+```
+
+### 4. Topic Analysis
+```
+Select college/subject/exam type → Query papers → 
+Aggregate topics across all matching papers → 
+Calculate frequency → Display heat-mapped results
 ```
 
 ---
 
-## 🔐 Environment Variables
+## 📡 API Endpoints Overview
 
-### Frontend (.env.local)
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Create new account |
+| POST | `/api/auth/login` | Authenticate user |
+| POST | `/api/auth/verify-email` | Verify email with OTP |
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password with token |
+| GET | `/api/auth/me` | Get current user profile |
 
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+### Papers
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/papers` | Search papers with filters |
+| GET | `/api/papers/:id` | Get paper by ID |
+| POST | `/api/papers/upload` | Upload new paper (multipart) |
+| POST | `/api/papers/:id/confirm` | Confirm paper metadata |
+| POST | `/api/papers/:id/like` | Toggle like on paper |
+| DELETE | `/api/papers/:id` | Delete own paper |
+
+### Topics & Stats
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/topics` | Get topic analysis |
+| GET | `/api/stats` | Platform statistics |
+| GET | `/api/users/leaderboard` | User rankings |
+
+---
+
+## 🗄️ Database Schema Overview
+
+### User Collection
+```javascript
+{
+  email: String,          // Unique, validated
+  password: String,       // Hashed with bcrypt
+  name: String,
+  college: String,        // Indexed for filtering
+  branch: String,
+  semester: String,
+  credits: Number,        // Gamification points
+  badges: [{              // Achievement badges
+    badgeId, name, icon, unlockedAt
+  }],
+  role: 'user' | 'admin' | 'moderator',
+  bookmarks: [ObjectId],  // Reference to papers
+  theme: String,
+  preferences: Object
+}
 ```
 
-### Backend (.env)
-
-```bash
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# MongoDB Configuration
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/exam-ready
-
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRES_IN=24h
-
-# Frontend URL (for CORS)
-FRONTEND_URL=http://localhost:3000
-
-# PaddleOCR Service URL
-OCR_SERVICE_URL=http://localhost:5001
-
-# AI Service (Grok/Groq)
-GROK_API_KEY=your-grok-api-key
-GROK_API_URL=https://api.x.ai/v1/chat/completions
-# OR
-GROQ_API_KEY=your-groq-api-key
-
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
-
-# Development Options
-USE_MOCK_OCR=false
-USE_MOCK_AI=false
+### Paper Collection
+```javascript
+{
+  uploadedBy: ObjectId,   // Reference to user
+  college: String,
+  subject: String,
+  semester: String,
+  branch: String,
+  examType: 'semester' | 'midterm1' | 'midterm2',
+  year: Number,
+  originalImage: String,  // Cloudinary URL
+  formattedText: {
+    partA: [{ questionNumber, question, marks, topic }],
+    partB: [{ questionNumber, question, marks, topic }]
+  },
+  metadata: {
+    ocrConfidence: Number,
+    extractionMethod: String
+  },
+  likes: Number,
+  likedBy: [ObjectId],
+  verified: Boolean,
+  flagged: Boolean
+}
 ```
 
 ---
 
-## 💻 Local Setup Instructions
+## 🔐 Authentication & Security
+
+### Security Measures Implemented
+
+| Measure | Implementation |
+|---------|----------------|
+| **Password Hashing** | bcrypt with 10 salt rounds |
+| **JWT Tokens** | 7-day expiry, role-based claims |
+| **Rate Limiting** | 100 req/15min general, 5 req/min for auth |
+| **Input Validation** | Zod schemas on all endpoints |
+| **NoSQL Injection** | express-mongo-sanitize |
+| **XSS Protection** | Helmet security headers |
+| **CORS** | Whitelist-based origin control |
+
+### Authentication Flow
+```
+POST /auth/login
+  ↓
+Validate credentials (Zod)
+  ↓
+Find user, compare password (bcrypt)
+  ↓
+Generate JWT with userId, email, role
+  ↓
+Return token + user data
+  ↓
+Client stores token in localStorage
+  ↓
+Subsequent requests include: Authorization: Bearer <token>
+```
+
+---
+
+## 🚀 Installation & Setup
 
 ### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Cloudinary account
+- Groq API key (for AI features)
 
-- Node.js 18+ 
-- Python 3.10+
-- MongoDB (local or Atlas)
-- Git
-
-### Step 1: Clone Repository
-
+### Clone Repository
 ```bash
 git clone https://github.com/yourusername/exam-ready.git
 cd exam-ready
 ```
 
-### Step 2: Setup Frontend
-
+### Install Dependencies
 ```bash
-# Install dependencies
+# Frontend
 npm install
 
-# Create environment file
-cp .env.example .env.local
-
-# Edit .env.local with your values
-# Start development server
-npm run dev
+# Backend
+cd backend
+npm install
 ```
 
-Frontend runs at: `http://localhost:3000`
+---
 
-### Step 3: Setup Backend
+## ⚙️ Environment Variables
 
+### Backend (`backend/.env`)
+```env
+# Server
+NODE_ENV=development
+PORT=5000
+
+# Database
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/exam-ready
+
+# Authentication
+JWT_SECRET=your-256-bit-secret
+JWT_EXPIRES_IN=7d
+
+# Cloud Services
+CLOUDINARY_CLOUD_NAME=your-cloud
+CLOUDINARY_API_KEY=your-key
+CLOUDINARY_API_SECRET=your-secret
+
+# AI Services
+GROQ_API_KEY=your-groq-key
+
+# CORS
+FRONTEND_URL=http://localhost:3000
+```
+
+### Frontend (`.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+---
+
+## 💻 Running the Project Locally
+
+### Start Backend
 ```bash
 cd backend
-
-# Install dependencies
-npm install
-
-# Create environment file
-cp .env.example .env
-
-# Edit .env with your MongoDB URI and other values
-# Start development server
 npm run dev
+# Server runs on http://localhost:5000
 ```
 
-Backend runs at: `http://localhost:5000`
-
-### Step 4: Setup OCR Service
-
+### Start Frontend
 ```bash
-cd ocr-service
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start OCR service
-python main.py
+# In root directory
+npm run dev
+# App runs on http://localhost:3000
 ```
 
-OCR service runs at: `http://localhost:5001`
-
-### Step 5: Verify Setup
-
-1. Open `http://localhost:3000` in browser
-2. Register a new account
-3. Try uploading a paper image
-4. Verify OCR and AI extraction works
+### Health Check
+```bash
+curl http://localhost:5000/health
+# Returns: { "status": "healthy", "uptime": ..., "version": "1.0.0" }
+```
 
 ---
 
-## 🌐 Production Deployment
+## 🌐 Deployment Details
 
-### Deploy Frontend to Vercel
+### Current Deployment
+| Service | Platform | URL |
+|---------|----------|-----|
+| Frontend | Vercel | `exam-ready-frontend.vercel.app` |
+| Backend | Render | `exam-ready-backend-8pi0.onrender.com` |
+| Database | MongoDB Atlas | Cloud cluster |
+| Images | Cloudinary | CDN delivery |
 
-1. Push code to GitHub
-2. Import project in Vercel dashboard
-3. Set environment variables:
-   - `NEXT_PUBLIC_API_URL` = `https://your-backend.onrender.com/api`
-4. Deploy
-
-### Deploy Backend to Render
-
-1. Create new Web Service
-2. Connect GitHub repository
-3. Set build command: `cd backend && npm install && npm run build`
-4. Set start command: `cd backend && npm start`
-5. Add environment variables from `.env`
-6. Deploy
-
-### Deploy OCR Service to Render
-
-1. Create new Web Service
-2. Connect GitHub repository (ocr-service folder)
-3. Set runtime to Python
-4. Set start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Deploy
-
-### Post-Deployment
-
-1. Update `OCR_SERVICE_URL` in backend to point to deployed OCR service
-2. Update `FRONTEND_URL` for CORS
-3. Test all endpoints
-
----
-
-## 📡 API Overview
-
-### Authentication
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/register` | POST | Register new user |
-| `/api/auth/login` | POST | Login user |
-| `/api/auth/me` | GET | Get current user |
-| `/api/auth/refresh` | POST | Refresh token |
-
-### Papers
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/papers` | GET | Search papers with filters |
-| `/api/papers/:id` | GET | Get paper by ID |
-| `/api/papers/upload` | POST | Upload paper image |
-| `/api/papers/:id/confirm` | POST | Confirm paper metadata |
-| `/api/papers/:id/like` | POST | Like/unlike paper |
-| `/api/papers/:id` | DELETE | Delete paper |
-
-### Topics
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/topics` | GET | Get topics with filters |
-| `/api/topics/top` | GET | Get top topics |
-
-### Users
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/users/profile` | GET | Get user profile |
-| `/api/users/profile` | PUT | Update profile |
-| `/api/users/leaderboard` | GET | Get leaderboard |
-| `/api/users/stats` | GET | Get user statistics |
-
-### Stats
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/stats` | GET | Get platform statistics |
-| `/api/stats/colleges` | GET | Get all colleges |
-| `/api/stats/subjects` | GET | Get all subjects |
+### Keep-Alive Configuration
+To prevent Render's free tier from sleeping:
+- **UptimeRobot** pings `/health` every 5 minutes
+- See `KEEPALIVE.md` for setup instructions
 
 ---
 
@@ -532,13 +391,16 @@ OCR service runs at: `http://localhost:5001`
 ![Dashboard](assets/dashboard.png)
 
 ### Paper Upload
-![Upload Paper](assets/upload.png)
+![Upload Page](assets/upload.png)
 
 ### Search Papers
 ![Search Papers](assets/search-papers.png)
 
-### Topic Analysis
-![Topic Analysis](assets/search-topics.png)
+### Search Topics
+![Search Topics](assets/search-topics.png)
+
+### Exam Paper View
+![Exam Paper](assets/exam-paper.png)
 
 ### Leaderboard
 ![Leaderboard](assets/leaderboard.png)
@@ -546,66 +408,89 @@ OCR service runs at: `http://localhost:5001`
 ### User Profile
 ![Profile](assets/profile.png)
 
-### Exam Paper View
-![Exam Paper](assets/exam-paper.png)
-
 ---
 
 ## 🔮 Future Enhancements
 
-1. **PDF Support** - Allow PDF uploads alongside images
-2. **Question Bank** - Generate practice question sets from topics
-3. **AI Study Assistance** - Chat with AI about specific topics
-4. **Mobile App** - React Native mobile application
-5. **Handwritten Text OCR** - Improved recognition for handwritten papers
-6. **Social Features** - Follow users, share collections
-7. **Analytics Dashboard** - Detailed stats for colleges/departments
-8. **Offline Mode** - PWA with offline paper viewing
+- [ ] **Real-time Notifications** — WebSocket integration
+- [ ] **PDF Support** — Direct PDF upload with text extraction
+- [ ] **Comment System** — Discuss questions on papers
+- [ ] **Study Groups** — Collaborative topic preparation
+- [ ] **Mobile App** — React Native companion app
+- [ ] **Advanced Analytics** — ML-based topic prediction
 
 ---
 
-## ⚠️ Limitations
+## 🧩 Challenges Solved
 
-1. **OCR Accuracy** - Performance varies with image quality and handwriting
-2. **AI Extraction** - Metadata extraction depends on paper format consistency
-3. **Language Support** - Currently optimized for English papers only
-4. **Cold Starts** - Render free tier has service spin-up delays
-5. **File Size** - Limited to images under 10MB
-6. **Rate Limiting** - API requests are rate-limited to prevent abuse
-
----
-
-## 📝 Conclusion
-
-**Exam Ready** addresses a real problem faced by engineering students by providing a centralized, intelligent platform for exam paper discovery and analysis. 
-
-The application demonstrates:
-
-- **Full-Stack Development** - Next.js frontend + Express backend + Python microservice
-- **AI/ML Integration** - OCR and AI-powered metadata extraction
-- **Database Design** - MongoDB with efficient indexing and aggregations
-- **Modern Architecture** - Microservices, REST APIs, JWT authentication
-- **Production Readiness** - Deployment configurations for multiple platforms
-- **User Experience** - Modern UI with gamification and responsive design
-
-This project serves as a comprehensive demonstration of modern web development practices and can be extended to serve institutions at scale.
+| Challenge | Solution |
+|-----------|----------|
+| OCR accuracy on handwritten text | Tesseract.js with preprocessing + AI refinement |
+| Scaling topic aggregation | MongoDB aggregation pipelines with indexes |
+| Free-tier hosting sleep | UptimeRobot keep-alive mechanism |
+| Duplicate paper detection | Compound index on all metadata fields |
+| Rate limiting abuse | Tiered rate limits (general, auth, upload) |
 
 ---
 
-## 👨‍💻 Author
+## 👀 What Recruiters Should Notice
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+### Clean Architecture
+- **Separation of concerns** — Routes → Controllers → Services → Models
+- **Type safety** — Full TypeScript coverage on frontend and backend
+- **Consistent patterns** — Uniform error handling, response formatting
+
+### Production-Ready Practices
+- **Security-first approach** — Rate limiting, input validation, secure headers
+- **Scalable database design** — Proper indexing, compound indexes for queries
+- **Comprehensive logging** — Winston with structured logs
+
+### Modern Tech Integration
+- **AI/ML Pipeline** — Groq LLM for intelligent metadata extraction
+- **Cloud-native** — Cloudinary CDN, MongoDB Atlas, Vercel/Render deployment
+- **Real OCR** — Tesseract.js for actual text extraction (not mock)
+
+### Full-Stack Competency
+- **Frontend** — Next.js App Router, 3D graphics, state management
+- **Backend** — REST API design, authentication, file uploads
+- **DevOps** — Environment configuration, deployment, uptime monitoring
+
+---
+
+## 🤝 Contributing Guidelines
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### Code Standards
+- Run `npm run lint` before committing
+- Follow TypeScript strict mode
+- Write meaningful commit messages
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-<p align="center">
-  Made with ❤️ for Engineering Students
-</p>
+## 📬 Contact
+
+**Developer:** Papasani Karthik  
+**Email:** [your-email@example.com]  
+**LinkedIn:** [linkedin.com/in/yourprofile]  
+**GitHub:** [github.com/yourusername]
+
+---
+
+<div align="center">
+
+**Built with ❤️ for students, by a student**
+
+⭐ Star this repo if you find it useful!
+
+</div>
