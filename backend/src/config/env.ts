@@ -47,6 +47,9 @@ interface EnvConfig {
     SENDGRID_API_KEY?: string;
     EMAIL_FROM: string;
 
+    // OCR Service
+    OCR_SERVICE_URL: string;
+
     // Development flags
     USE_MOCK_OCR: boolean;
     USE_MOCK_AI: boolean;
@@ -118,6 +121,9 @@ export const env: EnvConfig = {
     // Email
     SENDGRID_API_KEY: getEnvVarOptional('SENDGRID_API_KEY'),
     EMAIL_FROM: getEnvVar('EMAIL_FROM', 'noreply@examready.com'),
+
+    // OCR Service
+    OCR_SERVICE_URL: getEnvVar('OCR_SERVICE_URL', 'http://localhost:5001'),
 
     // Development flags
     USE_MOCK_OCR: getEnvVarBool('USE_MOCK_OCR', false),

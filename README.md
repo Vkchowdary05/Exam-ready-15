@@ -1,621 +1,611 @@
-# Exam Ready - AI-Powered Exam Paper Sharing Platform
+# 📚 Exam Ready
 
-A modern, full-stack platform for students to upload, share, and discover examination papers with AI-powered topic analysis.
+**AI-Powered Exam Paper Repository for Engineering Students**
 
-## Features
+> A full-stack web application that helps engineering students discover, share, and analyze exam papers using OCR and AI technology.
 
-- 📝 Upload & OCR exam papers
-- 🔍 Advanced search & filtering
-- 🤖 AI topic frequency analysis
-- 🎮 Gamification (badges, leaderboard)
-- 🎨 4 customizable themes
-- 📊 Export functionality (CSV, JSON)
-- 👥 User profiles & social features
-- 🛡️ Admin panel for moderation
-
-## Tech Stack
-
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: 
-  - Three.js (3D)
-  - Framer Motion (UI)
-  - GSAP (Scroll)
-- **State**: Zustand
-- **Forms**: React Hook Form + Zod
-- **Icons**: Lucide React
-- **UI**: shadcn/ui
-
-## Getting Started
-
-1. **Install dependencies**
-```bash
-npm install
-```
-
-2. **Set up environment variables**
-```bash
-cp .env.example .env.local
-```
-
-3. **Run development server**
-```bash
-npm run dev
-```
-
-4. **Open browser**
-Navigate to [http://localhost:3000](http://localhost:3000)
-
-## Project Structure
-
-See `docs/PROJECT_STRUCTURE.md` for detailed structure.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please open a GitHub issue.
-*/
-
-// ============================================
-// INSTALLATION CHECKLIST
-// ============================================
-
-/*
-✅ 1. Create all route files:
-   - app/(dashboard)/search/topics/page.tsx (from artifact)
-   - app/(dashboard)/topics/page.tsx (from artifact)
-   - app/(dashboard)/profile/page.tsx (from artifact)
-   - app/(dashboard)/leaderboard/page.tsx (from artifact)
-   - app/(dashboard)/admin/page.tsx (from artifact)
-
-✅ 2. Create shared components:
-   - components/shared/auth-guard.tsx (from artifact)
-   - components/shared/toast.tsx (from artifact)
-   - components/shared/toast-container.tsx (from artifact)
-   - components/shared/modal.tsx (from artifact)
-   - components/shared/index.ts (from this file)
-
-✅ 3. Create providers:
-   - app/providers.tsx (from this file)
-   - Update app/layout.tsx (from this file)
-
-✅ 4. Create hooks:
-   - hooks/use-local-storage.ts (from this file)
-   - hooks/use-debounce.ts (from this file)
-
-✅ 5. Create middleware:
-   - middleware.ts (from this file)
-
-✅ 6. Create types:
-   - types/index.ts (from artifact)
-
-✅ 7. Configuration files:
-   - .env.example (from this file)
-   - .gitignore (from this file)
-   - README.md (from this file)
-
-✅ 8. Install dependencies:
-   npm install framer-motion @react-three/fiber @react-three/drei three
-   npm install zustand react-hook-form @hookform/resolvers zod
-   npm install axios lucide-react
-   npm install @radix-ui/react-checkbox @radix-ui/react-dialog
-   npm install @radix-ui/react-dropdown-menu @radix-ui/react-label
-   npm install @radix-ui/react-select @radix-ui/react-slot
-   npm install @radix-ui/react-tabs
-   npm install class-variance-authority clsx tailwind-merge
-   npm install next-themes react-dropzone
-   npm install -D @types/three
-
-✅ 9. Test the application:
-   npm run dev
-   
-✅ 10. Check all routes:
-    / (landing)
-    /login
-    /register
-    /dashboard
-    /upload
-    /search/papers
-    /search/topics
-    /topics
-    /papers/[id]
-    /profile
-    /leaderboard
-    /admin
-
-# Exam Ready - Complete Project Implementation
-
-## 🎯 Project Status: COMPLETE ✅
-
-All 14 core pages, shared components, and features have been implemented according to the PRD specifications.
+![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
+![React](https://img.shields.io/badge/React-18-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![MongoDB](https://img.shields.io/badge/MongoDB-8-green?logo=mongodb)
+![Express](https://img.shields.io/badge/Express-4.18-lightgrey?logo=express)
+![Python](https://img.shields.io/badge/Python-3.10-yellow?logo=python)
 
 ---
 
-## 📁 Final Project Structure
+## 📋 Table of Contents
 
-```
-exam-ready/
-├── app/
-│   ├── (auth)/                          ✅ COMPLETE
-│   │   ├── layout.tsx                   # Auth layout with logo & footer
-│   │   ├── login/page.tsx               # Login form with validation
-│   │   └── register/page.tsx            # Registration with password strength
-│   │
-│   ├── (dashboard)/                     ✅ COMPLETE
-│   │   ├── layout.tsx                   # Dashboard layout with navbar
-│   │   ├── dashboard/page.tsx           # Main dashboard with stats
-│   │   ├── upload/page.tsx              # Upload with OCR simulation
-│   │   ├── profile/page.tsx             # Profile & Settings (4 tabs)
-│   │   ├── leaderboard/page.tsx         # Leaderboard with filtering
-│   │   ├── admin/page.tsx               # Admin panel (role-based)
-│   │   ├── papers/
-│   │   │   └── [id]/page.tsx            # Individual paper view
-│   │   ├── search/
-│   │   │   ├── papers/page.tsx          # Search papers with filters
-│   │   │   └── topics/page.tsx          # Search topics interface
-│   │   └── topics/page.tsx              # Topics view with AI prompts
-│   │
-│   ├── layout.tsx                       ✅ Root layout
-│   ├── page.tsx                         ✅ Landing page
-│   └── globals.css                      ✅ Global styles with themes
-│
-├── components/
-│   ├── landing/                         ✅ COMPLETE
-│   │   ├── hero-section.tsx             # Hero with 3D background
-│   │   ├── stats-section.tsx            # Animated counter stats
-│   │   ├── how-it-works-section.tsx     # 4-step process
-│   │   ├── features-section.tsx         # Feature cards grid
-│   │   ├── testimonials-section.tsx     # Auto-rotating carousel
-│   │   ├── badges-section.tsx           # Badge showcase
-│   │   ├── cta-section.tsx              # Call-to-action
-│   │   └── floating-papers-scene.tsx    # Three.js 3D animation
-│   │
-│   ├── layout/                          ✅ COMPLETE
-│   │   ├── navbar.tsx                   # Responsive navbar
-│   │   └── footer.tsx                   # Footer with links
-│   │
-│   ├── papers/                          ✅ COMPLETE
-│   │   └── paper-card.tsx               # Reusable paper card
-│   │
-│   ├── shared/                          ✅ COMPLETE
-│   │   ├── auth-guard.tsx               # Route protection HOC
-│   │   ├── toast.tsx                    # Toast notifications
-│   │   ├── toast-container.tsx          # Toast provider
-│   │   └── modal.tsx                    # Modal & ConfirmModal
-│   │
-│   └── ui/                              ✅ ALL SHADCN COMPONENTS
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── input.tsx
-│       ├── badge.tsx
-│       ├── checkbox.tsx
-│       ├── select.tsx
-│       ├── tabs.tsx
-│       ├── sheet.tsx
-│       ├── progress.tsx
-│       ├── skeleton.tsx
-│       ├── label.tsx
-│       └── dropdown-menu.tsx
-│
-├── lib/
-│   ├── utils.ts                         ✅ cn() utility
-│   ├── api.ts                           ✅ Complete API client
-│   └── mock-data.ts                     ✅ Mock data for development
-│
-├── stores/
-│   ├── auth-store.ts                    ✅ Authentication state
-│   └── ui-store.ts                      ✅ UI preferences state
-│
-├── types/
-│   └── index.ts                         ✅ Complete TypeScript types
-│
-├── public/
-│   ├── avatars/                         # User avatars
-│   ├── badges/                          # Badge icons
-│   └── papers/                          # Paper images
-│
-├── package.json                         ✅
-├── tsconfig.json                        ✅
-├── tailwind.config.ts                   ✅
-└── next.config.js                       ✅
-```
+- [Problem Statement](#-problem-statement)
+- [Solution Overview](#-solution-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [System Architecture](#-system-architecture)
+- [How the Web App Works](#-how-the-web-app-works)
+- [OCR Workflow](#-ocr-workflow)
+- [Deployment Architecture](#-deployment-architecture)
+- [Environment Variables](#-environment-variables)
+- [Local Setup Instructions](#-local-setup-instructions)
+- [Production Deployment](#-production-deployment)
+- [API Overview](#-api-overview)
+- [Screenshots](#-screenshots)
+- [Future Enhancements](#-future-enhancements)
+- [Limitations](#-limitations)
+- [Conclusion](#-conclusion)
 
 ---
 
-## ✨ Key Features Implemented
+## 🎯 Problem Statement
 
-### 🎨 Animation System
-- ✅ **Three.js** - 3D floating papers on landing page
-- ✅ **Framer Motion** - Page transitions, card animations, modals
-- ✅ **GSAP** - Scroll-triggered animations (landing page)
-- ✅ Skeleton loaders for all async content
+Engineering students face significant challenges when preparing for exams:
 
-### 🔐 Authentication
-- ✅ Login with email/password
-- ✅ Registration with validation
-- ✅ Password strength indicator
-- ✅ JWT token management
-- ✅ Protected routes with AuthGuard
-- ✅ Auto token refresh
+1. **Scattered Resources** - Exam papers are spread across WhatsApp groups, Google Drive links, and personal collections
+2. **Poor Organization** - Papers are often mislabeled or missing metadata (subject, semester, year)
+3. **Duplicate Content** - Same papers shared multiple times without proper categorization
+4. **No Topic Analysis** - Students cannot identify important/frequently asked topics
+5. **Time-Consuming Search** - Finding relevant papers requires extensive searching
 
-### 📄 Paper Management
-- ✅ Upload with drag-and-drop
-- ✅ OCR simulation with confidence scores
-- ✅ Multi-file upload (up to 10 files)
-- ✅ Progress bars for uploads
-- ✅ Side-by-side original/formatted view
-- ✅ Like/unlike papers
-- ✅ Share functionality
-- ✅ Download (PDF, Image, Both)
-- ✅ Print functionality
-- ✅ Report mechanism
+---
 
-### 🔍 Search & Filters
-- ✅ Advanced search with multiple filters
-- ✅ College, Subject, Semester, Branch, Exam Type
-- ✅ Year range slider
-- ✅ Sort by: Recent, Most Liked, Verified, Oldest
-- ✅ Active filter badges
-- ✅ Infinite scroll/pagination
-- ✅ Empty states with illustrations
+## 💡 Solution Overview
 
-### 📊 Topics Analysis
-- ✅ Required field validation
-- ✅ Part-A and Part-B separation
-- ✅ Color-coded frequency (red/orange/blue)
-- ✅ Topic count limits by exam type
-- ✅ **AI Prompt Generation** (JSON format)
-- ✅ Copy prompt to clipboard
-- ✅ **Export** (CSV, JSON)
-- ✅ Progress tracking (checkboxes)
-- ✅ Studied topics saved to localStorage
-- ✅ Sort by count/alphabetical
-- ✅ Filter top N topics
+**Exam Ready** is an intelligent exam paper repository that:
 
-### 👤 Profile & Settings
-- ✅ Profile picture upload with crop
-- ✅ Bio editing (200 char limit)
-- ✅ Social links (LinkedIn, GitHub, Twitter)
-- ✅ My Uploads tab with edit/delete
-- ✅ Bookmarks tab
-- ✅ Password change
-- ✅ Notification preferences
-- ✅ **4 Theme System** (Simple, Modern, Tech, Nerdy)
-- ✅ Privacy settings
-- ✅ Download my data
-- ✅ Delete account
+- Provides a **centralized platform** for uploading and discovering exam papers
+- Uses **OCR (Optical Character Recognition)** to automatically extract text from paper images
+- Employs **AI-powered metadata extraction** to auto-fill paper details (college, subject, semester, etc.)
+- Offers **topic frequency analysis** to identify important topics across papers
+- Implements **gamification** (credits, badges, leaderboard) to encourage contributions
+- Features **advanced search and filtering** for quick paper discovery
 
-### 🏆 Gamification
-- ✅ Credit system
-- ✅ 8 badge types
-- ✅ Badge progress tracking
-- ✅ Leaderboard (Global, College, Subject)
-- ✅ Time periods (All Time, Month, Week)
-- ✅ Top 3 podium display
-- ✅ Rank trends with indicators
-- ✅ Current user rank highlight
+---
+
+## ✨ Key Features
+
+### 📤 Smart Paper Upload
+- Upload exam paper images (JPG, PNG, WEBP)
+- Automatic text extraction using PaddleOCR
+- AI-powered auto-fill of metadata fields
+- Review and edit before submission
+
+### 🔍 Advanced Search & Discovery
+- Multi-filter search (college, subject, semester, branch, exam type, year)
+- Text-based search across all papers
+- Sort by recent, popularity, or relevance
+
+### 📊 Topic Frequency Analysis
+- View most frequently asked topics per subject
+- Filter by exam type (Semester/Midterm)
+- Identify high-priority topics for exam preparation
+
+### 🎮 Gamification System
+- Earn **credits** for uploading papers
+- Unlock **badges** for achievements
+- Compete on **leaderboards** (global, college, subject)
+
+### 👤 User Features
+- Secure authentication (JWT-based)
+- Personalized dashboard with stats
+- Like and bookmark papers
+- Profile customization
 
 ### 🛡️ Admin Panel
-- ✅ Platform statistics dashboard
-- ✅ Flagged papers review
-- ✅ User management table
-- ✅ Ban/unban users
-- ✅ Approve/reject papers
-- ✅ Recent activity feed
-- ✅ System health monitoring
-- ✅ Role-based access control
-
-### 🔔 Notifications
-- ✅ Toast notification system
-- ✅ Success, Error, Info, Warning types
-- ✅ Auto-dismiss with duration
-- ✅ Close button
-- ✅ Animated entrance/exit
-- ✅ Toast provider context
-
-### 🎯 UI/UX Features
-- ✅ Mobile-first responsive design
-- ✅ Dark mode support
-- ✅ Loading states everywhere
-- ✅ Skeleton loaders
-- ✅ Error handling
-- ✅ Empty states
-- ✅ Breadcrumb navigation
-- ✅ Keyboard navigation
-- ✅ ARIA labels
-- ✅ Focus indicators
+- Paper verification and moderation
+- User management
+- Flagged content review
 
 ---
 
-## 🚀 Setup Instructions
+## 🛠️ Tech Stack
 
-### 1. Install Dependencies
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| **Next.js 14** | React framework with App Router |
+| **React 18** | UI component library |
+| **TypeScript** | Type-safe JavaScript |
+| **Tailwind CSS 4** | Utility-first styling |
+| **Zustand** | State management |
+| **React Hook Form** | Form handling |
+| **Framer Motion** | Animations |
+| **Radix UI** | Accessible UI components |
+| **Recharts** | Data visualization |
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Node.js 18+** | JavaScript runtime |
+| **Express.js** | Web framework |
+| **TypeScript** | Type-safe development |
+| **MongoDB** | NoSQL database |
+| **Mongoose** | ODM for MongoDB |
+| **JWT** | Authentication tokens |
+| **Bcrypt.js** | Password hashing |
+| **Multer** | File upload handling |
+| **Cloudinary** | Cloud image storage |
+| **Winston** | Logging |
+| **Zod** | Schema validation |
+
+### OCR Service
+| Technology | Purpose |
+|------------|---------|
+| **Python 3.10** | Programming language |
+| **FastAPI** | Web framework |
+| **PaddleOCR** | Text extraction from images |
+| **Uvicorn** | ASGI server |
+
+### Infrastructure
+| Service | Purpose |
+|---------|---------|
+| **Vercel** | Frontend hosting |
+| **Render / Railway** | Backend & OCR service hosting |
+| **MongoDB Atlas** | Cloud database |
+| **Cloudinary** | Image CDN & storage |
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              FRONTEND                                    │
+│                         (Vercel - Next.js)                              │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────────────────┐ │
+│  │  Login/   │  │ Dashboard │  │  Upload   │  │  Search & Discovery   │ │
+│  │ Register  │  │  & Stats  │  │  Papers   │  │  Papers & Topics      │ │
+│  └───────────┘  └───────────┘  └───────────┘  └───────────────────────┘ │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │ HTTPS (REST API)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              BACKEND                                     │
+│                      (Render/Railway - Node.js)                         │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────────┐ │
+│  │    Auth    │  │   Papers   │  │   Topics   │  │  Users & Gamify    │ │
+│  │ Controller │  │ Controller │  │ Controller │  │    Controller      │ │
+│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘  └─────────┬──────────┘ │
+│         │               │               │                   │           │
+│  ┌──────▼───────────────▼───────────────▼───────────────────▼─────────┐ │
+│  │                     MongoDB (Atlas)                                 │ │
+│  │   Users │ Papers │ Topics │ Notifications                          │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │ HTTP (Internal)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            OCR SERVICE                                   │
+│                    (Render/Railway - Python)                            │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │                        PaddleOCR                                   │  │
+│  │          Text Extraction from Exam Paper Images                    │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2. Environment Variables
-Create `.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
+---
+
+## 📱 How the Web App Works
+
+### User Flow
+
+```mermaid
+graph TD
+    A[User Visits App] --> B{Logged In?}
+    B -->|No| C[Login/Register]
+    C --> D[Dashboard]
+    B -->|Yes| D
+    
+    D --> E[Search Papers]
+    D --> F[Upload Paper]
+    D --> G[View Topics]
+    D --> H[Leaderboard]
+    D --> I[Profile]
+    
+    E --> J[Filter & Browse]
+    J --> K[View Paper Details]
+    K --> L[Like/Bookmark]
+    
+    F --> M[Upload Image]
+    M --> N[OCR Processing]
+    N --> O[AI Auto-Fill]
+    O --> P[Review & Submit]
+    P --> Q[Earn Credits]
+```
+
+### Step-by-Step User Journey
+
+1. **Registration/Login**
+   - User creates account with email, password, college, branch, semester
+   - JWT token issued for authenticated sessions
+
+2. **Dashboard**
+   - View personal stats (uploads, likes received, credits, badges)
+   - Quick access to recent papers and platform statistics
+
+3. **Paper Upload**
+   - Select exam paper image (JPG, PNG, WEBP)
+   - OCR extracts text from image
+   - AI suggests metadata (college, subject, semester, etc.)
+   - User reviews and confirms details
+   - Paper saved to database, user earns credits
+
+4. **Search & Discovery**
+   - Apply filters (college, subject, semester, branch, exam type, year)
+   - Browse papers with sorting options
+   - View paper details, questions, and topics
+   - Like and bookmark papers for later
+
+5. **Topic Analysis**
+   - Select subject and exam type
+   - View topic frequency chart
+   - Identify high-priority topics for revision
+
+6. **Gamification**
+   - Earn credits for uploading papers
+   - Unlock badges for achievements
+   - Compete on leaderboards
+
+---
+
+## 🔍 OCR Workflow
+
+The OCR pipeline processes uploaded exam paper images:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  User Uploads   │────▶│  Node.js API    │────▶│  Python OCR     │
+│  Paper Image    │     │  Receives File  │     │  Service        │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+                                                         │
+                                                         ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  User Reviews   │◀────│  AI Extracts    │◀────│  PaddleOCR      │
+│  & Confirms     │     │  Metadata       │     │  Text Extraction│
+└────────┬────────┘     └─────────────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│  Paper Stored   │────▶│  Topics         │
+│  in MongoDB     │     │  Aggregated     │
+└─────────────────┘     └─────────────────┘
+```
+
+### OCR Processing Steps
+
+1. **Image Upload**: User uploads paper image via frontend
+2. **File Transfer**: Node.js backend receives file via Multer
+3. **OCR Request**: Backend sends image to Python OCR service
+4. **Text Extraction**: PaddleOCR extracts text with confidence score
+5. **AI Analysis**: Grok-3/Groq AI extracts structured metadata
+6. **Auto-Fill**: Frontend displays suggested metadata
+7. **User Confirmation**: User reviews and confirms details
+8. **Storage**: Paper and extracted topics saved to MongoDB
+
+---
+
+## 🚀 Deployment Architecture
+
+### Recommended Deployment Setup
+
+| Component | Platform | URL Pattern |
+|-----------|----------|-------------|
+| Frontend | Vercel | `exam-ready.vercel.app` |
+| Backend API | Render | `exam-ready-api.onrender.com` |
+| OCR Service | Render | `exam-ready-ocr.onrender.com` |
+| Database | MongoDB Atlas | `cluster.mongodb.net` |
+| Images | Cloudinary | `res.cloudinary.com` |
+
+### Deployment Flow
+
+```
+GitHub Repository
+       │
+       ├──────────────────┐
+       │                  │
+       ▼                  ▼
+   ┌────────┐        ┌────────┐
+   │ Vercel │        │ Render │
+   │Frontend│        │Backend │
+   └────────┘        │ + OCR  │
+                     └────────┘
+```
+
+---
+
+## 🔐 Environment Variables
+
+### Frontend (.env.local)
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 3. Run Development Server
+### Backend (.env)
+
 ```bash
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# MongoDB Configuration
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/exam-ready
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=24h
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:3000
+
+# PaddleOCR Service URL
+OCR_SERVICE_URL=http://localhost:5001
+
+# AI Service (Grok/Groq)
+GROK_API_KEY=your-grok-api-key
+GROK_API_URL=https://api.x.ai/v1/chat/completions
+# OR
+GROQ_API_KEY=your-groq-api-key
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+
+# Development Options
+USE_MOCK_OCR=false
+USE_MOCK_AI=false
+```
+
+---
+
+## 💻 Local Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+ 
+- Python 3.10+
+- MongoDB (local or Atlas)
+- Git
+
+### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/yourusername/exam-ready.git
+cd exam-ready
+```
+
+### Step 2: Setup Frontend
+
+```bash
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env.local
+
+# Edit .env.local with your values
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-### 4. Build for Production
+Frontend runs at: `http://localhost:3000`
+
+### Step 3: Setup Backend
+
 ```bash
-npm run build
-npm run start
+cd backend
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+
+# Edit .env with your MongoDB URI and other values
+# Start development server
+npm run dev
 ```
 
----
+Backend runs at: `http://localhost:5000`
 
-## 📦 Required Packages
+### Step 4: Setup OCR Service
 
-```json
-{
-  "dependencies": {
-    "next": "^15.1.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "framer-motion": "^11.15.0",
-    "@react-three/fiber": "^8.x",
-    "@react-three/drei": "^9.x",
-    "three": "^0.171.0",
-    "zustand": "^5.0.2",
-    "react-hook-form": "^7.54.2",
-    "@hookform/resolvers": "^3.9.1",
-    "zod": "^3.24.1",
-    "axios": "^1.7.9",
-    "lucide-react": "^0.468.0",
-    "@radix-ui/react-checkbox": "^1.1.2",
-    "@radix-ui/react-dialog": "^1.1.2",
-    "@radix-ui/react-dropdown-menu": "^2.1.2",
-    "@radix-ui/react-label": "^2.1.1",
-    "@radix-ui/react-select": "^2.1.5",
-    "@radix-ui/react-slot": "^1.1.1",
-    "@radix-ui/react-tabs": "^1.1.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
-    "next-themes": "^0.4.4",
-    "react-dropzone": "^14.3.5"
-  },
-  "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/three": "^0.171.0",
-    "tailwindcss": "^3.4.17",
-    "eslint": "^9",
-    "eslint-config-next": "^15.1.3"
-  }
-}
+```bash
+cd ocr-service
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start OCR service
+python main.py
 ```
 
----
+OCR service runs at: `http://localhost:5001`
 
-## 🎨 Theme System
+### Step 5: Verify Setup
 
-### Available Themes
-1. **Simple** - Clean, minimal grayscale
-2. **Modern** - Vibrant gradients (Indigo/Purple/Pink)
-3. **Tech** - Cyberpunk dark (Cyan/Green/Magenta)
-4. **Nerdy** - Terminal green on black
-
-### Implementation
-Themes are stored in Zustand `ui-store` and applied via CSS variables in `globals.css`.
+1. Open `http://localhost:3000` in browser
+2. Register a new account
+3. Try uploading a paper image
+4. Verify OCR and AI extraction works
 
 ---
 
-## 🔌 API Integration
+## 🌐 Production Deployment
 
-### Current Status
-- All API calls use mock data from `lib/mock-data.ts`
-- API client ready in `lib/api.ts`
-- Endpoints structured according to PRD
+### Deploy Frontend to Vercel
 
-### Backend Integration Steps
-1. Update `NEXT_PUBLIC_API_URL` in `.env.local`
-2. Backend implements endpoints from `lib/api.ts`
-3. Remove mock data imports
-4. Test with real API responses
+1. Push code to GitHub
+2. Import project in Vercel dashboard
+3. Set environment variables:
+   - `NEXT_PUBLIC_API_URL` = `https://your-backend.onrender.com/api`
+4. Deploy
 
-### Key Endpoints
-```
-POST   /api/auth/login
-POST   /api/auth/register
-GET    /api/users/profile
-GET    /api/users/stats
-GET    /api/papers
-GET    /api/papers/:id
-POST   /api/papers/upload
-POST   /api/papers/:id/like
-GET    /api/topics
-POST   /api/topics/prompt
-GET    /api/users/leaderboard
-GET    /api/notifications
-GET    /api/stats
-```
+### Deploy Backend to Render
 
----
+1. Create new Web Service
+2. Connect GitHub repository
+3. Set build command: `cd backend && npm install && npm run build`
+4. Set start command: `cd backend && npm start`
+5. Add environment variables from `.env`
+6. Deploy
 
-## ✅ Feature Checklist
+### Deploy OCR Service to Render
 
-### Core Pages (14/14) ✅
-- [x] Landing Page
-- [x] Login Page
-- [x] Register Page
-- [x] Dashboard
-- [x] Upload Page
-- [x] Search Papers Page
-- [x] Paper View Page
-- [x] Search Topics Page
-- [x] Topics View Page
-- [x] Profile/Settings Page
-- [x] Leaderboard Page
-- [x] Admin Panel
-- [x] Notifications (in navbar)
-- [x] 404/Error pages (Next.js default)
+1. Create new Web Service
+2. Connect GitHub repository (ocr-service folder)
+3. Set runtime to Python
+4. Set start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Deploy
 
-### Components (All) ✅
-- [x] Navbar
-- [x] Footer
-- [x] PaperCard
-- [x] AuthGuard
-- [x] Toast System
-- [x] Modal System
-- [x] All shadcn/ui components
+### Post-Deployment
 
-### Features ✅
-- [x] Three.js 3D animations
-- [x] Framer Motion transitions
-- [x] OCR simulation
-- [x] AI Prompt generation
-- [x] Export (CSV, JSON)
-- [x] Theme system (4 themes)
-- [x] Badge system
-- [x] Leaderboard
-- [x] Progress tracking
-- [x] Admin panel
-
-### Technical ✅
-- [x] TypeScript (strict mode)
-- [x] Zustand state management
-- [x] React Hook Form + Zod
-- [x] API client with interceptors
-- [x] Error boundaries
-- [x] Loading states
-- [x] Responsive design
-- [x] Accessibility (WCAG 2.1 AA)
+1. Update `OCR_SERVICE_URL` in backend to point to deployed OCR service
+2. Update `FRONTEND_URL` for CORS
+3. Test all endpoints
 
 ---
 
-## 📱 Responsive Breakpoints
+## 📡 API Overview
 
-```css
-/* Mobile */
-@media (min-width: 320px)  { /* ... */ }
+### Authentication
 
-/* Tablet */
-@media (min-width: 768px)  { /* ... */ }
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Register new user |
+| `/api/auth/login` | POST | Login user |
+| `/api/auth/me` | GET | Get current user |
+| `/api/auth/refresh` | POST | Refresh token |
 
-/* Desktop */
-@media (min-width: 1024px) { /* ... */ }
+### Papers
 
-/* Large Desktop */
-@media (min-width: 1440px) { /* ... */ }
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/papers` | GET | Search papers with filters |
+| `/api/papers/:id` | GET | Get paper by ID |
+| `/api/papers/upload` | POST | Upload paper image |
+| `/api/papers/:id/confirm` | POST | Confirm paper metadata |
+| `/api/papers/:id/like` | POST | Like/unlike paper |
+| `/api/papers/:id` | DELETE | Delete paper |
 
----
+### Topics
 
-## 🧪 Testing Checklist
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/topics` | GET | Get topics with filters |
+| `/api/topics/top` | GET | Get top topics |
 
-### User Flows
-- [ ] Register new account
-- [ ] Login with credentials
-- [ ] Upload exam paper
-- [ ] Search for papers
-- [ ] View paper details
-- [ ] Like/unlike paper
-- [ ] Search for topics
-- [ ] View topic analysis
-- [ ] Copy AI prompt
-- [ ] Export topics
-- [ ] View leaderboard
-- [ ] Update profile
-- [ ] Change theme
-- [ ] Admin: Review flagged content
+### Users
 
-### Browser Testing
-- [ ] Chrome
-- [ ] Firefox
-- [ ] Safari
-- [ ] Edge
-- [ ] Mobile browsers
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/users/profile` | GET | Get user profile |
+| `/api/users/profile` | PUT | Update profile |
+| `/api/users/leaderboard` | GET | Get leaderboard |
+| `/api/users/stats` | GET | Get user statistics |
 
-### Performance
-- [ ] Lighthouse score > 90
-- [ ] FCP < 1.5s
-- [ ] LCP < 2.5s
-- [ ] CLS < 0.1
+### Stats
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/stats` | GET | Get platform statistics |
+| `/api/stats/colleges` | GET | Get all colleges |
+| `/api/stats/subjects` | GET | Get all subjects |
 
 ---
 
-## 🔄 Next Steps (Post-MVP)
+## 📸 Screenshots
 
-1. **Backend Integration**
-   - Connect to real API
-   - Implement actual OCR service
-   - Set up authentication middleware
+### Landing Page
+![Landing Page](assets/landing.png)
 
-2. **Advanced Features**
-   - Real-time notifications (Socket.io)
-   - PDF viewer with annotation
-   - Social features (comments, follow users)
-   - Email notifications
-   - Advanced analytics dashboard
+### Dashboard
+![Dashboard](assets/dashboard.png)
 
-3. **Optimization**
-   - Image optimization (next/image)
-   - Code splitting
-   - Lazy loading
-   - Service worker for offline support
+### Paper Upload
+![Upload Paper](assets/upload.png)
 
-4. **Testing**
-   - Unit tests (Jest)
-   - Integration tests (React Testing Library)
-   - E2E tests (Cypress)
-   - Accessibility testing (axe-core)
+### Search Papers
+![Search Papers](assets/search-papers.png)
 
----
+### Topic Analysis
+![Topic Analysis](assets/search-topics.png)
 
-## 📞 Support
+### Leaderboard
+![Leaderboard](assets/leaderboard.png)
 
-For any issues or questions:
-- Check the PRD document
-- Review component documentation
-- Examine mock data structure
-- Test with provided mock APIs
+### User Profile
+![Profile](assets/profile.png)
+
+### Exam Paper View
+![Exam Paper](assets/exam-paper.png)
 
 ---
 
-## 🎉 Congratulations!
+## 🔮 Future Enhancements
 
-Your **Exam Ready** platform is now complete with:
-- ✅ All 14 pages fully implemented
-- ✅ Beautiful animations and transitions
-- ✅ Complete state management
-- ✅ Responsive design
-- ✅ Accessibility features
-- ✅ Admin panel
-- ✅ Gamification system
-- ✅ AI integration ready
-- ✅ Production-ready code
+1. **PDF Support** - Allow PDF uploads alongside images
+2. **Question Bank** - Generate practice question sets from topics
+3. **AI Study Assistance** - Chat with AI about specific topics
+4. **Mobile App** - React Native mobile application
+5. **Handwritten Text OCR** - Improved recognition for handwritten papers
+6. **Social Features** - Follow users, share collections
+7. **Analytics Dashboard** - Detailed stats for colleges/departments
+8. **Offline Mode** - PWA with offline paper viewing
 
-**Ready for backend integration and deployment!** 🚀
+---
+
+## ⚠️ Limitations
+
+1. **OCR Accuracy** - Performance varies with image quality and handwriting
+2. **AI Extraction** - Metadata extraction depends on paper format consistency
+3. **Language Support** - Currently optimized for English papers only
+4. **Cold Starts** - Render free tier has service spin-up delays
+5. **File Size** - Limited to images under 10MB
+6. **Rate Limiting** - API requests are rate-limited to prevent abuse
+
+---
+
+## 📝 Conclusion
+
+**Exam Ready** addresses a real problem faced by engineering students by providing a centralized, intelligent platform for exam paper discovery and analysis. 
+
+The application demonstrates:
+
+- **Full-Stack Development** - Next.js frontend + Express backend + Python microservice
+- **AI/ML Integration** - OCR and AI-powered metadata extraction
+- **Database Design** - MongoDB with efficient indexing and aggregations
+- **Modern Architecture** - Microservices, REST APIs, JWT authentication
+- **Production Readiness** - Deployment configurations for multiple platforms
+- **User Experience** - Modern UI with gamification and responsive design
+
+This project serves as a comprehensive demonstration of modern web development practices and can be extended to serve institutions at scale.
+
+---
+
+## 👨‍💻 Author
+
+**Your Name**
+- GitHub: [@yourusername](https://github.com/yourusername)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Made with ❤️ for Engineering Students
+</p>

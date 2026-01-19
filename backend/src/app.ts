@@ -28,11 +28,12 @@ export function createApp(): Express {
         crossOriginResourcePolicy: { policy: 'cross-origin' },
     }));
 
-    // CORS configuration - allow multiple origins for development
+    // CORS configuration - allow multiple origins for development and production
     const allowedOrigins = [
         env.FRONTEND_URL,
         'http://localhost:3000',
         'http://localhost:3001',
+        'https://exam-ready-15-jvzs-hrk28xuy1-venakata-kartheeks-projects.vercel.app',
     ];
 
     app.use(cors({
