@@ -1,6 +1,7 @@
 // src/services/ocrService.ts
-// OCR service using PaddleOCR via external Python service
+// OCR service using Tesseract.js (free, local OCR)
 
+import Tesseract from 'tesseract.js';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 
@@ -15,7 +16,7 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<{
         return mockOCR();
     }
 
-    return paddleOCR(imageBuffer);
+    return tesseractOCR(imageBuffer);
 }
 
 /**
@@ -79,42 +80,39 @@ Answer ALL questions
 }
 
 /**
- * Real OCR using PaddleOCR Python service
+ * Real OCR using Tesseract.js (free, local OCR)
  */
-async function paddleOCR(imageBuffer: Buffer): Promise<{
+async function tesseractOCR(imageBuffer: Buffer): Promise<{
     text: string;
     confidence: number;
 }> {
     try {
-        logger.info('Sending image to PaddleOCR service...');
+        logger.info('Starting Tesseract OCR processing...');
 
-        // Create form data with the image
-        const formData = new FormData();
-        const blob = new Blob([imageBuffer], { type: 'image/png' });
-        formData.append('file', blob, 'image.png');
+        const result = await Tesseract.recognize(
+            imageBuffer,
+            'eng', // English language
+            {
+                logger: (m) => {
+                    if (m.status === 'recognizing text') {
+                        logger.debug(`OCR Progress: ${(m.progress * 100).toFixed(1)}%`);
+                    }
+                },
+            }
+        );
 
-        // Call the Python OCR service
-        const response = await fetch(`${env.OCR_SERVICE_URL}/ocr`, {
-            method: 'POST',
-            body: formData,
-        });
+        const text = result.data.text;
+        const confidence = result.data.confidence / 100; // Convert to 0-1 scale
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`OCR service error: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json() as { text: string; confidence: number };
-
-        logger.info(`PaddleOCR completed with ${(result.confidence * 100).toFixed(2)}% confidence`);
-        logger.info(`Extracted ${result.text.length} characters`);
+        logger.info(`Tesseract OCR completed with ${(confidence * 100).toFixed(2)}% confidence`);
+        logger.info(`Extracted ${text.length} characters`);
 
         return {
-            text: result.text.trim(),
-            confidence: result.confidence,
+            text: text.trim(),
+            confidence,
         };
     } catch (error) {
-        logger.error('PaddleOCR service error:', error);
+        logger.error('Tesseract OCR error:', error);
         throw error;
     }
 }
