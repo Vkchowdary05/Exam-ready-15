@@ -384,11 +384,29 @@ To prevent Render's free tier from sleeping:
 
 ## 📸 Screenshots
 
-> Note: Add screenshots to `/public/screenshots/` and update paths below
+### Landing Page
+![Landing Page](assets/landing.png)
 
-| Dashboard | Paper Upload | Topic Analysis |
-|-----------|--------------|----------------|
-| ![Dashboard](public/screenshots/dashboard.png) | ![Upload](public/screenshots/upload.png) | ![Topics](public/screenshots/topics.png) |
+### Dashboard
+![Dashboard](assets/dashboard.png)
+
+### Paper Upload
+![Upload Page](assets/upload.png)
+
+### Search Papers
+![Search Papers](assets/search-papers.png)
+
+### Search Topics
+![Search Topics](assets/search-topics.png)
+
+### Exam Paper View
+![Exam Paper](assets/exam-paper.png)
+
+### Leaderboard
+![Leaderboard](assets/leaderboard.png)
+
+### User Profile
+![Profile](assets/profile.png)
 
 ---
 
