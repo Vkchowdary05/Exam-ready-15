@@ -30,10 +30,14 @@ app.add_middleware(
 # use_angle_cls=True enables text direction detection
 # lang='en' for English
 # device='cpu' for CPU-only mode (no GPU)
+# Disable document preprocessing to reduce memory usage and avoid extra model downloads
 ocr = PaddleOCR(
     use_angle_cls=True,
     lang='en',
-    device='cpu'
+    device='cpu',
+    use_doc_orientation_classify=False,  # Disable doc orientation (avoids PP-LCNet model)
+    use_doc_unwarping=False,             # Disable doc unwrapping (avoids UVDoc model)
+    use_textline_orientation=False       # Disable textline orientation (avoids extra model)
 )
 
 @app.get("/")
