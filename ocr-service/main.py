@@ -64,39 +64,54 @@ async def extract_text(file: UploadFile = File(...)):
         
         logger.info(f"Processing image: {file.filename}, size: {len(contents)} bytes")
         
-        # Perform OCR
-        result = ocr.ocr(io.BytesIO(contents), cls=True)
+        # Save to temp file for PaddleOCR (v3.x requires file path or numpy array)
+        import tempfile
+        import os
         
-        if not result or not result[0]:
-            logger.warning("No text detected in image")
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp_file:
+            tmp_file.write(contents)
+            tmp_path = tmp_file.name
+        
+        try:
+            # Perform OCR (v3.x API - no cls parameter)
+            result = ocr.ocr(tmp_path)
+            
+            if not result or not result[0]:
+                logger.warning("No text detected in image")
+                return {
+                    "text": "",
+                    "confidence": 0.0
+                }
+            
+            # Extract text and confidence scores (v3.x format)
+            texts = []
+            confidences = []
+            
+            for line in result[0]:
+                if line and len(line) >= 2:
+                    text_info = line[1]
+                    if isinstance(text_info, tuple) and len(text_info) >= 2:
+                        texts.append(str(text_info[0]))
+                        confidences.append(float(text_info[1]))
+                    elif isinstance(text_info, str):
+                        texts.append(text_info)
+                        confidences.append(1.0)
+            
+            # Combine all text
+            extracted_text = "\n".join(texts)
+            
+            # Calculate average confidence
+            avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+            
+            logger.info(f"OCR completed: {len(extracted_text)} chars, {avg_confidence:.2%} confidence")
+            
             return {
-                "text": "",
-                "confidence": 0.0
+                "text": extracted_text,
+                "confidence": avg_confidence
             }
-        
-        # Extract text and confidence scores
-        texts = []
-        confidences = []
-        
-        for line in result[0]:
-            if line and len(line) >= 2:
-                text_info = line[1]
-                if text_info and len(text_info) >= 2:
-                    texts.append(text_info[0])
-                    confidences.append(text_info[1])
-        
-        # Combine all text
-        extracted_text = "\n".join(texts)
-        
-        # Calculate average confidence
-        avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
-        
-        logger.info(f"OCR completed: {len(extracted_text)} chars, {avg_confidence:.2%} confidence")
-        
-        return {
-            "text": extracted_text,
-            "confidence": avg_confidence
-        }
+        finally:
+            # Clean up temp file
+            os.unlink(tmp_path)
         
     except Exception as e:
         logger.error(f"OCR error: {str(e)}")
@@ -105,3 +120,4 @@ async def extract_text(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5001)
+
